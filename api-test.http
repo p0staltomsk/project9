@@ -1,0 +1,247 @@
+@baseUrl = https://api.neoapi.ai/v2
+@grogUrl = https://api.grog.ai/v1
+@localUrl = http://localhost:3001/project9
+@llmUrl = http://localhost:8000
+@apiKey = {{$processEnv GROG_API_KEY}}
+@neoApiKey = {{$processEnv NEO_API_KEY}}
+
+### Local Infrastructure Tests
+
+### Test Local Chat API with Multi-Layer Processing
+POST {{localUrl}}/api/chat/multi-layer
+Content-Type: application/json
+
+{
+    "messages": [
+        {
+            "role": "system",
+            "content": "You are a cyberpunk AI assistant."
+        },
+        {
+            "role": "user",
+            "content": "Hello, Neo!"
+        }
+    ],
+    "systemInstruction": "Respond in cyberpunk style",
+    "processingLayers": ["grog", "llm", "neo"], // Порядок обработки
+    "analysisDepth": "full" // full | partial | minimal
+}
+
+### Test Local LLM Direct
+POST {{llmUrl}}/generate
+Content-Type: application/json
+
+{
+    "prompt": "Analyze this conversation context",
+    "context": [
+        {"role": "user", "content": "Previous message"},
+        {"role": "assistant", "content": "Previous response"}
+    ],
+    "parameters": {
+        "temperature": 0.7,
+        "maxTokens": 2000,
+        "topP": 0.9
+    }
+}
+
+### Test Context Analysis
+POST {{localUrl}}/api/analyze/context
+Content-Type: application/json
+
+{
+    "conversationId": "uuid-here",
+    "messageId": "message-uuid",
+    "analysisType": "semantic", // semantic | sentiment | coherence
+    "depth": "full"
+}
+
+### Neo API Integration Tests
+
+### Detect AI with Context
+POST {{baseUrl}}/detect_ai/context
+Authorization: Bearer {{neoApiKey}}
+Content-Type: application/json
+
+{
+    "text": "Current message",
+    "context": {
+        "previous_messages": ["msg1", "msg2"],
+        "conversation_topic": "tech",
+        "user_profile": {
+            "interaction_style": "technical",
+            "preferred_language": "en"
+        }
+    },
+    "full_metrics": true
+}
+
+### Analyze Conversation Flow
+POST {{baseUrl}}/analyze/conversation
+Authorization: Bearer {{neoApiKey}}
+Content-Type: application/json
+
+{
+    "conversation_id": "uuid-here",
+    "messages": [
+        {
+            "id": "msg1",
+            "content": "Hello",
+            "role": "user",
+            "timestamp": "2024-03-20T10:00:00Z"
+        }
+    ],
+    "metrics": ["flow", "coherence", "engagement"]
+}
+
+### Grog AI Advanced Tests
+
+### Multi-Model Chat Processing
+POST {{grogUrl}}/chat/multi-model
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+    "models": [
+        {
+            "name": "llama-3.1-70b-versatile",
+            "role": "primary_responder"
+        },
+        {
+            "name": "llama-3.2-11b-vision-preview",
+            "role": "context_analyzer"
+        }
+    ],
+    "messages": [
+        {
+            "role": "system",
+            "content": "You are a cyberpunk AI assistant."
+        },
+        {
+            "role": "user",
+            "content": "Analyze this context"
+        }
+    ],
+    "processing_options": {
+        "parallel": true,
+        "merge_strategy": "weighted_average"
+    }
+}
+
+### Cross-Model Analysis
+POST {{grogUrl}}/analyze/cross-model
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+    "text": "Sample text",
+    "models": ["llama-3.1", "mixtral-8x7b"],
+    "comparison_metrics": ["perplexity", "coherence"]
+}
+
+### Layered Processing Tests
+
+### Test Full Pipeline
+POST {{localUrl}}/api/process/pipeline
+Content-Type: application/json
+
+{
+    "input": {
+        "message": "User message",
+        "context": ["prev1", "prev2"]
+    },
+    "pipeline": [
+        {
+            "layer": "grog",
+            "config": {
+                "model": "llama-3.1-70b-versatile",
+                "temperature": 0.7
+            }
+        },
+        {
+            "layer": "llm",
+            "config": {
+                "contextAnalysis": true,
+                "semanticProcessing": true
+            }
+        },
+        {
+            "layer": "neo",
+            "config": {
+                "fullMetrics": true,
+                "thresholds": {
+                    "aiProbability": 0.8,
+                    "coherence": 0.6
+                }
+            }
+        }
+    ],
+    "options": {
+        "parallelProcessing": true,
+        "failover": {
+            "enabled": true,
+            "strategy": "skip-layer"
+        }
+    }
+}
+
+### Test Adaptive Pipeline
+POST {{localUrl}}/api/process/adaptive
+Content-Type: application/json
+
+{
+    "message": "User input",
+    "context": {
+        "messages": ["prev1", "prev2"],
+        "metrics": {
+            "complexity": 0.8,
+            "sensitivity": 0.6
+        }
+    },
+    "adaptiveConfig": {
+        "priorityLayer": "auto", // grog | llm | neo | auto
+        "thresholds": {
+            "complexity": 0.7,
+            "sensitivity": 0.5
+        },
+        "routing": {
+            "simple": "llm",
+            "complex": "grog",
+            "sensitive": ["neo", "grog"]
+        }
+    }
+}
+
+### Performance Tests
+
+### Test Load Balancing
+POST {{localUrl}}/api/process/load-test
+Content-Type: application/json
+
+{
+    "requests": 100,
+    "concurrent": 10,
+    "distribution": {
+        "grog": 0.4,
+        "llm": 0.3,
+        "neo": 0.3
+    }
+}
+
+### Monitoring Tests
+
+### Get Pipeline Metrics
+GET {{localUrl}}/api/metrics/pipeline
+Content-Type: application/json
+
+### Get Layer Performance
+GET {{localUrl}}/api/metrics/layers
+?timeframe=24h
+&resolution=5m
+
+### Health Checks
+
+### Test All Services Health
+GET {{localUrl}}/api/health/all
+
+### Get System Status
+GET {{localUrl}}/api/status 
