@@ -9,16 +9,11 @@ const nextConfig = {
   basePath: process.env.NODE_ENV === 'production' ? '/project9' : '',
   assetPrefix: process.env.NODE_ENV === 'production' ? '/project9' : '',
   publicRuntimeConfig: {
-    basePath: process.env.BASE_PATH || '',
-    neoApiEndpoint: process.env.NEO_API_ENDPOINT || 'https://api.neo.network'
+    basePath: process.env.NODE_ENV === 'production' ? '/project9' : '',
+    neoApiEndpoint: process.env.NEO_API_ENDPOINT || '/api/neo'
   },
-  // Добавляем конфигурацию для статических файлов
   images: {
     unoptimized: true,
-  },
-  webpack: (config) => {
-    config.resolve.alias['@'] = path.join(__dirname, '.')
-    return config
   }
 }
 

@@ -3,18 +3,16 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Send, Zap, Brain, Cpu, Terminal, Wifi } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import axios from 'axios'
-import { debounce } from 'lodash' // Добавьте эту строку в начало файла
+import { debounce } from 'lodash'
 import Link from 'next/link'
 import getConfig from 'next/config'
 import Head from 'next/head'
-import { getApiUrl } from '../utils/api'
-import { NeoAPI } from '../types/neo-api'
 import { CyberNotification } from '../components/CyberNotification'
 import { useChat } from '../features/chat/hooks/useChat'
 import { ChatMessage } from '../features/chat/ui/ChatMessage'
+import { AnimatedBackground } from '../features/chat/ui/AnimatedBackground'
+import { APIClient } from '../types/api'
 
-// Добавьте эту строку в начало файла, после импортов
 const { publicRuntimeConfig } = getConfig()
 
 function useWindowSize() {
@@ -30,14 +28,14 @@ function useWindowSize() {
           width: window.innerWidth,
           height: window.innerHeight,
         })
-      }, 250) // Задержка в 250 мс
+      }, 250)
 
       window.addEventListener('resize', handleResize)
       handleResize()
 
       return () => {
         window.removeEventListener('resize', handleResize)
-        handleResize.cancel() // Отмена отложенного вызова при размонтировании
+        handleResize.cancel()
       }
     }
   }, [])
@@ -45,29 +43,66 @@ function useWindowSize() {
   return windowSize
 }
 
+function useClientOnly<T>(value: T): T | null {
+  const [clientValue, setClientValue] = useState<T | null>(null)
+  
+  useEffect(() => {
+    setClientValue(value)
+  }, [value])
+  
+  return clientValue
+}
+
 export default function CyberpunkAIChat() {
-  const { messages, isLoading, notification, sendMessage, clearNotification } = useChat()
+  const { messages, isLoading, notification, sendMessage, clearNotification, setSystemError } = useChat()
   const [input, setInput] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const windowSize = useWindowSize()
 
+  const clientWindowSize = useClientOnly(windowSize)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const neoApi = new NeoAPI({
-      endpoint: publicRuntimeConfig.neoApiEndpoint
+    const apiClient = new APIClient({
+      endpoint: publicRuntimeConfig.neoApiEndpoint,
+      apiKey: process.env.GROG_API_KEY
     })
-    await sendMessage(input, neoApi)
+    await sendMessage(input, apiClient)
     setInput('')
   }
 
-  // Устанавливаем фокус на input после обновления компонента
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     if (inputRef.current) {
-      inputRef.current.focus() // устанавливаем фокус на поле ввода
+      inputRef.current.focus()
     }
   }, [messages])
+
+  useEffect(() => {
+    const handleError = (error: ErrorEvent) => {
+      console.error('Runtime error:', error)
+      setSystemError('SYSTEM ERROR: Neural interface malfunction detected')
+    }
+
+    window.addEventListener('error', handleError)
+    return () => window.removeEventListener('error', handleError)
+  }, [setSystemError])
+
+  if (!messages || !sendMessage) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-black text-green-500">
+        <div className="text-center">
+          <h1 className="text-2xl mb-4">SYSTEM INITIALIZATION...</h1>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            className="w-12 h-12 border-t-2 border-green-500 rounded-full mx-auto"
+          />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -76,30 +111,8 @@ export default function CyberpunkAIChat() {
         <link rel="icon" href={`${publicRuntimeConfig.basePath}/favicon.ico`} />
       </Head>
       <div className="flex flex-col h-screen bg-black text-green-500 font-mono overflow-hidden">
-        {/* Animated background */}
-        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-          <AnimatePresence>
-            {[...Array(10)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute rounded-full bg-green-500 mix-blend-screen filter blur-xl"
-                initial={{ scale: 0, x: Math.random() * windowSize.width, y: Math.random() * windowSize.height }}
-                animate={{
-                  scale: [1, 2, 2, 1, 1],
-                  x: [null, Math.random() * windowSize.width, Math.random() * windowSize.width],
-                  y: [null, Math.random() * windowSize.height, Math.random() * windowSize.height],
-                }}
-                transition={{ duration: 20, repeat: Infinity, repeatType: 'reverse' }}
-                style={{
-                  width: `${Math.random() * 300 + 50}px`,
-                  height: `${Math.random() * 300 + 50}px`,
-                }}
-              />
-            ))}
-          </AnimatePresence>
-        </div>
+        <AnimatedBackground windowSize={clientWindowSize || windowSize} />
 
-        {/* Header */}
         <header className="relative z-10 flex items-center justify-between p-4 bg-black bg-opacity-70 border-b border-green-500 backdrop-blur-md">
           <h1 className="text-2xl font-bold text-green-300 tracking-wider">Neon Nexus AI</h1>
           <div className="flex items-center space-x-4">
@@ -127,7 +140,6 @@ export default function CyberpunkAIChat() {
           </div>
         </header>
 
-        {/* Chat messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 relative z-10">
           <AnimatePresence>
             {messages.map((message, index) => (
@@ -137,14 +149,13 @@ export default function CyberpunkAIChat() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input area */}
         <form onSubmit={handleSubmit} className="relative z-10 p-4 bg-black bg-opacity-70 border-t border-green-500 backdrop-blur-md">
           <div className="flex items-center space-x-2">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              ref={inputRef} // добавляем реф к input
+              ref={inputRef}
               className="flex-1 bg-black bg-opacity-50 border border-green-500 rounded-md p-2 text-green-300 focus:outline-none focus:ring-2 focus:ring-green-400 placeholder-green-700"
               placeholder="Enter your command..."
               disabled={isLoading}
@@ -162,7 +173,6 @@ export default function CyberpunkAIChat() {
           </div>
         </form>
 
-        {/* Loading indicator */}
         {isLoading && (
           <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
             <motion.div

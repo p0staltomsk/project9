@@ -2,7 +2,20 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User, Brain, Database, Zap, Shield, Settings, ChevronRight, ChevronDown, Cpu, Activity, Terminal, Wifi } from 'lucide-react'
+import { 
+  User, 
+  Brain, 
+  Database, 
+  Zap, 
+  Shield, 
+  Settings, 
+  ChevronRight, 
+  ChevronDown, 
+  Cpu, 
+  Activity, 
+  Terminal, 
+  Wifi 
+} from 'lucide-react'
 import Link from 'next/link'
 import getConfig from 'next/config'
 import Head from 'next/head'

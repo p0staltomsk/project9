@@ -6,10 +6,14 @@
     "scripts": {
         "dev": "next dev",
         "build": "next build",
-        "start": "next start",
-        "lint": "next lint"
+        "start": "next start -p 3001",
+        "lint": "eslint . --ext .ts,.tsx --fix",
+        "prebuild": "pnpm lint",
+        "postinstall": "pnpm install-types",
+        "install-types": "pnpm add -D @types/node @types/react @types/react-dom @types/lodash"
     },
     "dependencies": {
+        "@types/axios": "^0.14.0",
         "axios": "^1.4.0",
         "framer-motion": "^10.15.1",
         "lodash": "^4.17.21",
@@ -19,12 +23,17 @@
         "react-dom": "18.2.0"
     },
     "devDependencies": {
-        "@types/lodash": "^4.17.12",
-        "@types/node": "20.5.0",
-        "@types/react": "18.2.20",
-        "@types/react-dom": "18.2.7",
+        "@types/lodash": "^4.17.13",
+        "@types/node": "^20.5.0",
+        "@types/react": "^18.2.20",
+        "@types/react-dom": "^18.2.7",
+        "@typescript-eslint/eslint-plugin": "^5.62.0",
+        "@typescript-eslint/parser": "^5.62.0",
         "autoprefixer": "10.4.15",
-        "eslint-config-next": "14.2.15",
+        "eslint": "^8.45.0",
+        "eslint-config-next": "13.4.12",
+        "eslint-plugin-react": "^7.32.2",
+        "eslint-plugin-react-hooks": "^4.6.0",
         "postcss": "^8.4.47",
         "tailwindcss": "3.3.3",
         "typescript": "5.1.6"

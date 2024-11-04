@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import axios from 'axios'
 import { useRouter } from 'next/router'
 import getConfig from 'next/config'
 import Head from 'next/head'
-import { getApiUrl } from '../utils/api'
+import { APIClient } from '../types/api'
+import { SYSTEM_INSTRUCTION } from '../features/chat/model/constants'
 
 const { publicRuntimeConfig } = getConfig()
 
@@ -18,8 +18,13 @@ const preparedResponses = [
   'Compiling data from the neon archives...',
 ]
 
+interface Message {
+  content: string;
+  role: 'user' | 'assistant' | 'system';
+}
+
 export default function CyberpunkConsoleChat() {
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<Message[]>([
     { content: 'Welcome to the Neon Nexus Terminal. How can I assist you in this digital realm?', role: 'assistant' },
     { content: 'TIP: Enter \'comeback\' to return to the starting page.', role: 'system' }
   ])
@@ -29,16 +34,11 @@ export default function CyberpunkConsoleChat() {
   const inputRef = useRef<HTMLInputElement>(null)  
   const router = useRouter()
 
-  const systemInstruction = `You are an AI assistant in a cyberpunk-themed chat interface. 
-  Respond in a style that fits the cyberpunk genre: use techno-futuristic language, 
-  reference advanced technology, and maintain a slightly mysterious and edgy tone. 
-  Keep responses concise but informative.`
-
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (input.trim() && !isLoading) {
       setIsLoading(true)
-      const userMessage = { role: 'user', content: input }
+      const userMessage: Message = { role: 'user', content: input }
       setMessages(prevMessages => [...prevMessages, userMessage])
       setInput('')
 
@@ -53,19 +53,34 @@ export default function CyberpunkConsoleChat() {
       }
 
       // Add a prepared response
-      const preparedResponse = { role: 'assistant', content: preparedResponses[Math.floor(Math.random() * preparedResponses.length)] }
+      const preparedResponse: Message = { 
+        role: 'assistant', 
+        content: preparedResponses[Math.floor(Math.random() * preparedResponses.length)] 
+      }
       setMessages(prevMessages => [...prevMessages, preparedResponse])
 
       try {
-        const response = await axios.post(getApiUrl('/api/chat'), {
-          messages: [...messages, userMessage],
-          systemInstruction
+        const apiClient = new APIClient({
+          endpoint: publicRuntimeConfig.neoApiEndpoint,
+          apiKey: process.env.GROG_API_KEY
         })
-        const aiMessage = { role: 'assistant', content: response.data.choices[0].message.content }
+
+        const response = await apiClient.processWithGrog(
+          [...messages, userMessage],
+          SYSTEM_INSTRUCTION
+        )
+
+        const aiMessage: Message = { 
+          role: 'assistant', 
+          content: response.choices[0].message.content 
+        }
         setMessages(prevMessages => [...prevMessages, aiMessage])
       } catch (error) {
         console.error('Error:', error)
-        const errorMessage = { role: 'assistant', content: 'A glitch in the Matrix. Please try your request again.' }
+        const errorMessage: Message = { 
+          role: 'assistant', 
+          content: 'A glitch in the Matrix. Please try your request again.' 
+        }
         setMessages(prevMessages => [...prevMessages, errorMessage])
       } finally {
         setIsLoading(false)

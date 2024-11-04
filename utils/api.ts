@@ -1,4 +1,5 @@
 export const getApiUrl = (path: string): string => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || ''
-  return `${baseUrl}${path}`
+  const isProduction = process.env.NODE_ENV === 'production'
+  const basePath = isProduction ? '/project9' : ''
+  return `${basePath}${path}`
 }
