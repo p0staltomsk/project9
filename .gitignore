@@ -23,7 +23,8 @@ dist-ssr
 *.local
 .next
 .env
-/src/neoapi/venv/*
+/src/service/venv/*
+.pytest_cache
 
 # Editor directories and files
 .vscode/*

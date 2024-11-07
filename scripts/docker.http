@@ -1,0 +1,122 @@
+@baseUrl = http://localhost:8000
+@wsUrl = ws://localhost:8001
+
+### Basic Health Check
+GET {{baseUrl}}/health
+Content-Type: application/json
+
+### Chat API Tests
+
+### Simple Chat Message
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+    "message": "Hello, how are you?"
+}
+
+### Empty Message (Should Return Error)
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+    "message": ""
+}
+
+### Long Message
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+    "message": "Can you explain what is GraphQL and how it differs from REST API? Please provide a detailed explanation with examples."
+}
+
+### Invalid JSON (Should Return Error)
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+    invalid_json
+}
+
+### Missing Message Field (Should Return Error)
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+    "wrong_field": "test"
+}
+
+### Metrics API Tests
+
+### Get Message Metrics
+GET {{baseUrl}}/metrics/12345
+Content-Type: application/json
+
+### Get Latest Metrics
+GET {{baseUrl}}/metrics/latest
+Content-Type: application/json
+
+### Get Metrics by Date Range
+GET {{baseUrl}}/metrics?start=2024-01-01&end=2024-12-31
+Content-Type: application/json
+
+### Redis Tests
+
+### Get Message Data
+GET {{baseUrl}}/messages/12345
+Content-Type: application/json
+
+### Get Latest Messages
+GET {{baseUrl}}/messages/latest
+Content-Type: application/json
+
+### Get Messages by Date
+GET {{baseUrl}}/messages?date=2024-01-01
+Content-Type: application/json
+
+### WebSocket Tests
+
+### Connect to WebSocket
+WEBSOCKET {{wsUrl}}
+
+### Subscribe to Metrics
+WEBSOCKET {{wsUrl}}/subscribe
+Content-Type: application/json
+
+{
+    "message_id": "12345",
+    "events": ["metrics", "analysis"]
+}
+
+### Performance Tests
+
+### Batch Message Processing
+POST {{baseUrl}}/chat/batch
+Content-Type: application/json
+
+{
+    "messages": [
+        {"text": "Message 1"},
+        {"text": "Message 2"},
+        {"text": "Message 3"}
+    ]
+}
+
+### Health and Monitoring
+
+### Detailed Health Check
+GET {{baseUrl}}/health/detailed
+Content-Type: application/json
+
+### Service Status
+GET {{baseUrl}}/status
+Content-Type: application/json
+
+### Redis Status
+GET {{baseUrl}}/status/redis
+Content-Type: application/json
+
+### API Stats
+GET {{baseUrl}}/stats
+Content-Type: application/json

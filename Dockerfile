@@ -2,27 +2,26 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# Install only necessary system dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    build-essential \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Create and activate virtual environment
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Environment setup
+ENV PYTHONPATH=/app \
+    PYTHONUNBUFFERED=1
 
-# Copy requirements first for better caching
+# Copy and install requirements
 COPY requirements.txt .
-
-# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application files
-COPY ./src/neoapi /app/src/neoapi
+COPY src/service ./src/service
 
-# Expose port for API
-EXPOSE 8000
+# Health check
+HEALTHCHECK --interval=5s --timeout=3s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
 
-# Command to run the application
-CMD ["python", "/app/src/neoapi/main.py"]
+# Run service
+CMD ["python", "-m", "src.service.main"]

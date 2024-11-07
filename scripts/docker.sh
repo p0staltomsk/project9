@@ -1,100 +1,128 @@
 #!/bin/bash
+set -e
 
-# Константы
-PROJECT_NAME="project9"
-SERVICE_NAME="neo-service"
-REDIS_NAME="neo-redis"
-NETWORK_NAME="${PROJECT_NAME}_neo-network"
+# Константы проекта
+PROJECT_NAME="neonchat"
+SERVICE_NAME="neonchat-service"
+REDIS_NAME="neonchat-redis"
+NETWORK_NAME="${PROJECT_NAME}_neonchat-network"
 
-# Очистка только наших сервисов
-cleanup() {
-    echo "Cleaning up $PROJECT_NAME services..."
-    docker-compose down
-    docker rmi $SERVICE_NAME 2>/dev/null || true
+# Переходим в корневую директорию проекта
+cd "$(dirname "$0")/.."
+PROJECT_ROOT=$(pwd)
+
+# Функция безопасной очистки только контейнеров проекта
+cleanup_project() {
+    echo "Safely cleaning up only $PROJECT_NAME containers..."
+    
+    # Останавливаем и удаляем контейнеры
+    for container in "$SERVICE_NAME" "$REDIS_NAME"; do
+        if docker ps -a -q -f name="^/${container}$" > /dev/null 2>&1; then
+            echo "Stopping and removing $container..."
+            docker stop "$container" > /dev/null 2>&1 || true
+            docker rm "$container" > /dev/null 2>&1 || true
+        fi
+    done
+    
+    # Удаляем образ
+    if docker images "$SERVICE_NAME" -q > /dev/null 2>&1; then
+        echo "Removing $SERVICE_NAME image..."
+        docker rmi "$SERVICE_NAME" > /dev/null 2>&1 || true
+    fi
+    
+    # Удаляем сеть
+    if docker network ls -q -f name="^${NETWORK_NAME}$" > /dev/null 2>&1; then
+        echo "Removing $NETWORK_NAME network..."
+        docker network rm "$NETWORK_NAME" > /dev/null 2>&1 || true
+    fi
+    
     echo "Cleanup complete"
 }
 
-# Пересборка с новыми зависимостями
-rebuild() {
-    echo "Rebuilding $SERVICE_NAME with dependencies..."
-    docker-compose build --no-cache $SERVICE_NAME
-}
-
-# Тест Groq API
-test_groq() {
-    echo -e "\n=== Testing Groq API ==="
-    local TEST_RESPONSE=$(curl -s -X POST \
-        -H "Content-Type: application/json" \
-        -d '{"message":"What is GraphQL?"}' \
-        http://localhost:8000/chat)
-    
-    echo "Groq API Response:"
-    echo "$TEST_RESPONSE" | jq .
-    
-    # Проверяем успешность
-    if echo "$TEST_RESPONSE" | jq -e '.message' > /dev/null; then
-        echo "✓ Groq API test passed"
-        return 0
-    else
-        echo "✗ Groq API test failed"
-        return 1
+# Проверка наличия .env файла
+check_env() {
+    if [ ! -f "$PROJECT_ROOT/.env" ]; then
+        echo "Error: .env file not found in $PROJECT_ROOT"
+        exit 1
     fi
 }
 
-# Тест Neo API
-test_neo() {
-    echo -e "\n=== Testing Neo API ==="
-    # Получаем ID из предыдущего ответа Groq
-    local GROQ_RESPONSE=$(curl -s -X POST \
-        -H "Content-Type: application/json" \
-        -d '{"message":"test neo api"}' \
-        http://localhost:8000/chat)
+# Функция проверки запуска сервиса
+check_service_startup() {
+    echo "Checking service startup..."
+    local max_attempts=30
+    local attempt=1
     
-    local MESSAGE_ID=$(echo "$GROQ_RESPONSE" | jq -r '.id')
+    while [ $attempt -le $max_attempts ]; do
+        echo "Startup check attempt $attempt/$max_attempts..."
+        
+        # Проверяем статус контейнера
+        if [ "$(docker inspect -f '{{.State.Running}}' $SERVICE_NAME 2>/dev/null)" != "true" ]; then
+            echo "Container is not running. Logs:"
+            docker logs "$SERVICE_NAME" 2>&1
+            return 1
+        fi
+        
+        # Проверяем логи на наличие ошибок
+        if docker logs "$SERVICE_NAME" 2>&1 | grep -i "error\|exception\|failed" > /dev/null; then
+            echo "Found errors in logs:"
+            docker logs "$SERVICE_NAME" 2>&1 | grep -i "error\|exception\|failed"
+            return 1
+        fi
+        
+        # Проверяем health endpoint
+        if curl -s http://localhost:8000/health > /dev/null; then
+            echo "✓ Service is responding to health checks"
+            return 0
+        fi
+        
+        sleep 1
+        attempt=$((attempt + 1))
+    done
     
-    echo "Waiting for Neo API processing..."
-    sleep 2
+    echo "Service failed to start properly. Full logs:"
+    docker logs "$SERVICE_NAME"
+    return 1
+}
+
+# Основной процесс сборки
+main() {
+    echo "Starting $PROJECT_NAME build process..."
     
-    # Проверяем логи на наличие Neo API вызовов
-    echo "Neo API Logs:"
-    docker logs $SERVICE_NAME | grep -A 2 "Sending to Neo API" | tail -n 3
+    # Проверяем окружение
+    check_env
     
-    if docker logs $SERVICE_NAME | grep -q "Neo API Response"; then
-        echo "✓ Neo API test passed"
-        return 0
-    else
-        echo "✗ Neo API test failed"
-        return 1
+    # Безопасная очистка
+    cleanup_project
+    
+    # Собираем и запускаем сервисы
+    echo "Building and starting services..."
+    docker-compose build \
+        --no-cache \
+        --build-arg SERVICE_NAME="$SERVICE_NAME" \
+        "$SERVICE_NAME"
+    
+    docker-compose --project-name "$PROJECT_NAME" \
+                  --env-file "$PROJECT_ROOT/.env" \
+                  up -d
+    
+    echo "✅ Build complete"
+    echo "Service status:"
+    docker ps --format "table {{.Names}}\t{{.Status}}" | grep "$PROJECT_NAME" || true
+    
+    # Проверяем запуск сервиса
+    if ! check_service_startup; then
+        echo "❌ Service startup check failed"
+        exit 1
+    fi
+    
+    # Запускаем тесты если передан параметр --test
+    if [ "$1" = "--test" ]; then
+        echo "Running tests..."
+        chmod +x ./scripts/docker.test.sh  # Устанавливаем права на выполнение
+        ./scripts/docker.test.sh
     fi
 }
 
-# Запуск сервисов
-echo "Starting $PROJECT_NAME services..."
-cleanup
-rebuild
-docker-compose up -d $SERVICE_NAME redis
-sleep 5
-
-# Запуск тестов
-TESTS_FAILED=0
-
-# 1. Тест Groq API
-test_groq || TESTS_FAILED=$((TESTS_FAILED + 1))
-
-# 2. Тест Neo API
-test_neo || TESTS_FAILED=$((TESTS_FAILED + 1))
-
-# Статус сервисов и итог
-echo -e "\n=== Service Status ==="
-docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "$SERVICE_NAME|$REDIS_NAME"
-
-echo -e "\n=== Test Summary ==="
-if [ $TESTS_FAILED -eq 0 ]; then
-    echo "✓ All tests passed"
-    exit 0
-else
-    echo "✗ $TESTS_FAILED tests failed"
-    echo "Check service logs:"
-    docker logs $SERVICE_NAME
-    exit 1
-fi
+# Запускаем основной процесс
+main "$@"

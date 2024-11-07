@@ -1,34 +1,33 @@
+version: '3.8'
+
 services:
-  neo-service:
-    build: 
+  neonchat-service:
+    build:
       context: .
       dockerfile: Dockerfile
-    container_name: neo-service
-    image: neo-service
+    image: neonchat-service
+    container_name: neonchat-service
     ports:
       - "8000:8000"
+      - "8001:8001"
     env_file: .env
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - neonchat-network
+    restart: "no"
     depends_on:
       - redis
-    networks:
-      - neo-network
-    restart: unless-stopped
 
   redis:
     image: redis:alpine
-    container_name: neo-redis
+    container_name: neonchat-redis
     ports:
       - "6380:6379"
-    volumes:
-      - redis-data:/data
     networks:
-      - neo-network
-    command: redis-server --appendonly yes
-    restart: unless-stopped
+      - neonchat-network
+    restart: "no"
 
 networks:
-  neo-network:
+  neonchat-network:
     driver: bridge
-
-volumes:
-  redis-data:
