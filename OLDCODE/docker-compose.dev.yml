@@ -1,0 +1,18 @@
+# Конфигурация разработки
+version: '3.8'
+
+services:
+  neo-service:
+    container_name: neo-service-dev
+    ports:
+      - "8001:8000"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./src:/app/src
+    networks:
+      - dev-network
+
+networks:
+  dev-network:
+    name: dev-network 

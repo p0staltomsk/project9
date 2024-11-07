@@ -7,12 +7,23 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
+# Environments
+.env
+.env.local
+.env.*
+
+# Docker
+backup/
+*.tar
+
+# Development
+node_modules/
+dist/
 dist-ssr
 *.local
 .next
 .env
+/src/neoapi/venv/*
 
 # Editor directories and files
 .vscode/*

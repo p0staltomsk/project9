@@ -1,0 +1,29 @@
+import type { BaseMessage } from '../../types';
+
+export interface Metrics {
+  scores: {
+    coherence_score: number;
+    entropy_score: number;
+    burstiness_score: number;
+    perplexity_score: number;
+    vocab_richness_score: number;
+    readability_score: number;
+    dominant_prob_score: number;
+  };
+  is_ai_generated: boolean;
+  analysis_id: string;
+}
+
+export interface Message extends BaseMessage {
+  metrics?: Metrics;
+}
+
+export interface ChatHookReturn {
+  messages: Message[];
+  isLoading: boolean;
+  notification: string | null;
+  systemError: string | null;
+  sendMessage: (text: string) => Promise<void>;
+  clearNotification: () => void;
+  setSystemError: (error: string | null) => void;
+} 

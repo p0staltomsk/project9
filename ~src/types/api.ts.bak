@@ -1,0 +1,24 @@
+// import axios from 'axios'
+import { Metrics } from '../features/chat/types';
+
+export interface APIResponse {
+  id: string;
+  message?: string;
+  choices?: Array<{
+    message: {
+      content: string;
+    };
+  }>;
+  metrics?: Metrics;
+  error?: string;
+  details?: string;
+}
+
+export interface APIConfig {
+  endpoint: string;
+  apiKey?: string;
+}
+
+export interface APIClient {
+  processWithGrog: (message: string) => Promise<APIResponse>;
+}

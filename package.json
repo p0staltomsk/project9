@@ -5,12 +5,9 @@
     "private": true,
     "scripts": {
         "dev": "next dev",
-        "build": "next build",
-        "start": "next start -p 3001",
-        "lint": "eslint . --ext .ts,.tsx --fix",
-        "prebuild": "pnpm lint",
-        "postinstall": "pnpm install-types",
-        "install-types": "pnpm add -D @types/node @types/react @types/react-dom @types/lodash"
+        "build": "next build && next export",
+        "start": "next start",
+        "lint": "next lint"
     },
     "dependencies": {
         "@types/axios": "^0.14.0",
@@ -20,7 +17,12 @@
         "lucide-react": "^0.263.1",
         "next": "^15.0.0",
         "react": "18.2.0",
-        "react-dom": "18.2.0"
+        "react-dom": "18.2.0",
+        "socket.io-client": "^4.8.1",
+        "@groq/sdk": "^0.3.0",
+        "tailwindcss": "^3.3.3",
+        "postcss": "^8.4.47",
+        "autoprefixer": "^10.4.15"
     },
     "devDependencies": {
         "@types/lodash": "^4.17.13",
@@ -29,13 +31,10 @@
         "@types/react-dom": "^18.2.7",
         "@typescript-eslint/eslint-plugin": "^5.62.0",
         "@typescript-eslint/parser": "^5.62.0",
-        "autoprefixer": "10.4.15",
         "eslint": "^8.45.0",
         "eslint-config-next": "13.4.12",
         "eslint-plugin-react": "^7.32.2",
         "eslint-plugin-react-hooks": "^4.6.0",
-        "postcss": "^8.4.47",
-        "tailwindcss": "3.3.3",
         "typescript": "5.1.6"
     }
 }

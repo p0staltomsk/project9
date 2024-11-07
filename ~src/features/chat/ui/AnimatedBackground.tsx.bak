@@ -1,0 +1,25 @@
+import { FC } from 'react';
+import { motion } from 'framer-motion';
+import { useClientOnly } from '../hooks/useClientOnly';
+import { WindowSize } from '../types';
+
+interface AnimatedBackgroundProps {
+  windowSize: WindowSize;
+}
+
+export const AnimatedBackground: FC<AnimatedBackgroundProps> = ({ windowSize }): JSX.Element => {
+  const clientWindowSize = useClientOnly(windowSize);
+
+  if (!clientWindowSize) return <></>;
+
+  return (
+    <div className="fixed inset-0 z-0">
+      <motion.div 
+        className="absolute inset-0 bg-black opacity-90"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.9 }}
+        transition={{ duration: 1 }}
+      />
+    </div>
+  );
+}; 
