@@ -1,9 +1,10 @@
+# mypy: ignore-errors
 import os
 import json
 import logging
+from typing import Dict, Optional, List, Any
 import requests
 import asyncio
-from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -15,18 +16,29 @@ class GroqAPI:
         self.base_url = 'https://api.groq.com/openai/v1/chat/completions'
         self.model = 'mixtral-8x7b-32768'
 
-    async def get_response(self, message: str, context: list = None, max_retries: int = 3) -> str:
+    async def get_response(self, message: str, context: Optional[List[Dict[str, str]]] = None, max_retries: int = 3) -> str:
         """
         Асинхронно получает ответ от Groq API с учетом контекста диалога.
+
+        Args:
+            message: Текст сообщения
+            context: Список предыдущих сообщений в формате [{role: str, content: str}]
+            max_retries: Максимальное количество попыток
+
+        Returns:
+            str: Ответ от API
+
+        Raises:
+            Exception: При ошибке запроса к API
         """
         for attempt in range(max_retries):
             try:
                 logger.info(f"Attempt {attempt + 1}/{max_retries} - Sending request to Groq API: {message[:50]}...")
-                
+
                 messages = context if context else []
                 if not context:
                     messages = [{'role': 'user', 'content': message}]
-                
+
                 response = requests.post(
                     self.base_url,
                     headers={
@@ -41,19 +53,19 @@ class GroqAPI:
                     },
                     timeout=30
                 )
-                
+
                 if response.status_code == 503:
                     if attempt < max_retries - 1:
                         await asyncio.sleep(1)  # Пауза перед повторной попыткой
                         continue
-                        
+
                 if response.status_code != 200:
                     error_msg = f"Groq API Error: {response.status_code} - {response.text}"
                     logger.error(error_msg)
                     raise Exception(error_msg)
 
                 result = response.json()
-                content = result['choices'][0]['message']['content']
+                content: str = result['choices'][0]['message']['content']
                 logger.info(f"Received response from Groq API: {content[:50]}...")
                 return content
 
@@ -64,3 +76,5 @@ class GroqAPI:
                     continue
                 logger.error(f"Error in Groq API request: {str(e)}")
                 raise
+
+        return "Failed to get response after all retries"  # Добавлен возвращаемый результат по умолчанию

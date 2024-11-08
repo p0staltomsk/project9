@@ -73,14 +73,41 @@ GET http://localhost:8000/metrics/{message_id}
 black src/service
 isort src/service
 
-# Линтинг
+# Линтинг и проверка типов
 flake8 src/service
-mypy src/service
 
-# Pre-commit хуки
-pre-commit install
-pre-commit run --all-files
+# Проверка типов
+# Вариант 1: Используя скрипт (рекомендуется)
+./check_types.sh
+
+# Вариант 2: Напрямую через mypy
+mypy . --namespace-packages --explicit-package-bases
+
+# Игнорирование ошибок типизации для конкретного файла:
+# Добавьте в начало файла:
+# mypy: ignore-errors
+
+# Игнорирование конкретной строки:
+# type: ignore[error-name]
 ```
+
+### Конфигурация типизации
+Проект использует mypy для проверки типов. Основные файлы конфигурации:
+
+- `mypy.ini` - основные настройки проверки типов
+- `check_types.sh` - скрипт для удобного запуска проверки
+- `pyproject.toml` - дополнительные настройки для работы с пакетами
+
+Текущая конфигурация настроена на "мягкую" проверку типов:
+- Разрешены неявные Any
+- Разрешены функции без аннотаций
+- Игнорируются ошибки в тестах
+- Настроено игнорирование внешних библиотек
+
+### Известные проблемы с типами
+1. Модуль neoapi не имеет аннотаций типов - используйте `# type: ignore[attr-defined]` при импорте
+2. Для тестов может потребоваться добавление `# type: ignore[import-not-found]`
+3. При добавлении новых внешних библиотек может потребоваться их добавление в секцию игнорирования в `mypy.ini`
 
 ## Архитектура
 
@@ -222,10 +249,15 @@ curl -X POST https://api.groq.com/openai/v1/chat/completions \
 
 ### Neo API напрямую
 ```bash
-curl -X POST https://api.neo.example.com/analyze \
-  -H "Authorization: Bearer ${NEO_API_KEY}" \
+curl -X POST https://api.neoapi.ai/analyze \
+  -H "Authorization: Bearer api_r0g-KXFkFv2nYSlxN8kpbrB-JQXPGuh4Ji4nYqPU" \
   -H "Content-Type: application/json" \
   -d '{
-    "text": "Your text to analyze"
-  }'
+    "text": "ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША! ОЛОЛОША!",
+    "project": "neoapi",
+    "group": "playground",
+    "analysis_slug": "playground",
+    "prompt": "What is the meaning of life?",
+    "full_metrics": true
+}'
 ```

@@ -1,18 +1,32 @@
 Наш чат работает через текстовую генерацию ответа от GROQ и отправку запросов в NEOAPI для анализа текста и получения метрик.
 
-Сюборка бека:
+README.md - описание проекта
+docs - документация проекта
 
-/docker-compose.yml - конфиг для запуска сервиса через docker compose
-/Dockerfile - конфиг для сборки образа docker
-/scripts/docker.sh - скрипт для сборки и запуска сервиса через docker
-/scripts/docker.test.sh - скрипт для тестирования сервиса через docker
-/scripts/docker.http - тесты для http запросов к сервису
-/scripts/README.md - описание скриптов
+## Фронтенд:
 
-Основной пул работы по беку на python:
+src/components
+src/features
+src/pages
+src/utils
+src/types
+src/styles
+ecosystem.config.js - конфиг для запуска фронтенда через PM2
+next.config.js - конфиг для запуска фронтенда через Next.js
 
-/src/service - тут все файлы бека
-/src/service/README.md - описание работы с кодом
-    
-Схема работы сервиса: 
-client -> SERVICE -> GROG_API -> SERVICE -> NEOAPI/client -> SERVICE <- (lazyload from ws NEOAPI metrics) client
+## Основной пул работы по беку на python:
+
+src/service - тут все файлы бека влючая тесты
+src/service/README.md - описание работы с кодом
+
+## Сюборка бека:
+
+docker-compose.yml - конфиг для запуска сервиса через docker compose
+Dockerfile - конфиг для сборки образа docker
+scripts/docker.sh - скрипт для сборки и запуска сервиса через docker
+scripts/docker.test.sh - скрипт для тестирования сервиса через docker
+scripts/docker.http - тесты для http запросов к сервису
+scripts/README.md - описание скриптов
+
+Схема работы сервиса:
+client -> SERVICE -> GROG_API -> SERVICE -> NEOAPI/client -> SERVICE <- (WebSocket lazyload from redis NEOAPI metrics) client
