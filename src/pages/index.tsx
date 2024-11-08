@@ -1,5 +1,3 @@
-// /var/www/html/project9/pages/index.tsx
-
 import React, { useState, useEffect, useRef } from 'react'
 import { Send, Zap, Brain, Cpu, Terminal, Wifi } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -12,6 +10,7 @@ import { useChat } from '../features/chat/hooks/useChat'
 import { ChatMessage } from '../features/chat/ui/ChatMessage'
 import { AnimatedBackground } from '../features/chat/ui/AnimatedBackground'
 import { SYSTEM_INSTRUCTION, PREPARED_RESPONSES } from '../features/chat/model/constants'
+import { AIMetrics } from '../features/chat/ui/AIMetrics'
 
 const { publicRuntimeConfig } = getConfig()
 
@@ -45,17 +44,37 @@ function useWindowSize() {
 
 function useClientOnly<T>(value: T): T | null {
   const [clientValue, setClientValue] = useState<T | null>(null)
-  
+
   useEffect(() => {
     setClientValue(value)
   }, [value])
-  
+
   return clientValue
+}
+
+export interface Metrics {
+  is_ai_generated: boolean;
+  human_likeness_score: number;
+  metrics?: {
+    text_coherence_complexity?: {
+      sentence_coherence: number;
+      complexity_score: number;
+      perplexity: number;
+    };
+    readability_metrics?: {
+      flesch_score: number;
+      avg_words_per_sentence: number;
+    };
+    vocabulary_lexical_diversity?: {
+      unique_word_ratio: number;
+      lexical_diversity: number;
+    };
+  };
 }
 
 export default function CyberpunkAIChat() {
   const [loading, setLoading] = useState(false)
-  const { messages, notification, sendMessage, clearNotification, setSystemError } = useChat()
+  const { messages, notification, sendMessage, clearNotification, setSystemError, handleEmptyResponse } = useChat()
   const [input, setInput] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -69,61 +88,15 @@ export default function CyberpunkAIChat() {
     e.preventDefault()
     if (!input.trim() || loading) return
 
+    const userMessage = input
+    setInput('')
+    setLoading(true)
+
     try {
-      setLoading(true)
-      const userMessage = input.trim()
-      setInput('')
-
       await sendMessage(userMessage, '')
-
-      const preparedResponse = PREPARED_RESPONSES[Math.floor(Math.random() * PREPARED_RESPONSES.length)]
-      await sendMessage('', preparedResponse, true)
-
-      const context = [
-        ...(isFirstMessage ? [{ role: 'system', content: SYSTEM_INSTRUCTION }] : []),
-        ...messages
-          .filter(msg => !msg.isTemporary && !PREPARED_RESPONSES.includes(msg.content))
-          .map(msg => ({
-            role: msg.role,
-            content: msg.content.trim()
-          }))
-      ]
-
-      if (isFirstMessage) {
-        setIsFirstMessage(false)
-      }
-
-      const response = await fetch('/project9/api/neo/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          message: userMessage,
-          context: context
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok')
-      }
-
-      const data = await response.json()
-      
-      if (data.status === 'success' && data.message) {
-        const cleanedMessage = data.message.trim().replace(/\n+/g, ' ')
-        await sendMessage('', cleanedMessage, false)
-        
-        if (data.metrics && !data.metrics.error) {
-          console.log('Message metrics:', data.metrics)
-        }
-      } else {
-        throw new Error(data.error || 'Unknown error occurred')
-      }
-
     } catch (error) {
-      console.error('Error:', error)
-      setSystemError('Neural network connection failed')
+      console.error('Chat error:', error)
+      setSystemError('Neural interface malfunction')
     } finally {
       setLoading(false)
     }
@@ -164,10 +137,10 @@ export default function CyberpunkAIChat() {
   return (
     <>
       <Head>
-        <title>Neon Nexus AI Chat</title>
-        <link rel="icon" href={`${publicRuntimeConfig.basePath}/favicon.ico`} />
+        <title>Neon Nexus AI</title>
       </Head>
-      <div className="flex flex-col h-screen bg-black text-green-500 font-mono overflow-hidden">
+
+      <div className="flex flex-col h-screen bg-black text-green-300">
         <AnimatedBackground windowSize={clientWindowSize || windowSize} />
 
         <header className="relative z-10 flex items-center justify-between p-4 bg-black bg-opacity-70 border-b border-green-500 backdrop-blur-md">
@@ -200,7 +173,10 @@ export default function CyberpunkAIChat() {
         <div className="flex-1 overflow-y-auto p-4 space-y-4 relative z-10">
           <AnimatePresence>
             {messages.map((message, index) => (
-              <ChatMessage key={index} message={message} />
+              <ChatMessage
+                key={index}
+                message={message}
+              />
             ))}
           </AnimatePresence>
           <div ref={messagesEndRef} />
@@ -242,7 +218,7 @@ export default function CyberpunkAIChat() {
 
         <AnimatePresence>
           {notification && (
-            <CyberNotification 
+            <CyberNotification
               message={notification}
               onClose={clearNotification}
             />

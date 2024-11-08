@@ -10,6 +10,21 @@
 
 Cyberpunk-themed AI chat interface with real-time AI detection metrics and analysis.
 
+## 🌟 Latest Updates (v0.1)
+- ✨ Real-time AI metrics visualization
+- 🔄 Improved error handling with cyberpunk-style messages
+- 🎨 Enhanced UI with metric details
+- 🚀 Stable API integration
+- 🧪 Full test coverage
+
+## 🤖 Features
+- Advanced AI detection metrics
+- Real-time analysis visualization
+- Cyberpunk-themed interface
+- WebSocket updates
+- Redis caching
+- Docker deployment
+
 ## 🌟 Features
 
 ### Current Features
@@ -124,6 +139,7 @@ MIT License - feel free to use this project for any purpose.
 
 [![Neo API SDK](https://img.shields.io/badge/Neo%20API-SDK-blue)](https://pypi.org/project/neoapi-sdk/)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-3120/)
+[![Version 0.1](https://img.shields.io/badge/version-0.1-green.svg)](https://github.com/your-repo/neon-nexus)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 🔮 Vision
