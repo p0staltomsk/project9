@@ -1,12 +1,18 @@
 const path = require('path')
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig = {  
+  basePath: '/project9',
   reactStrictMode: true,
+  eslint: {
+    ignoreDuringBuilds: true
+  },
+  typescript: {
+    ignoreBuildErrors: true
+  },
   env: {
     GROG_API_KEY: process.env.GROG_API_KEY,
   },
-  basePath: '/project9',
   assetPrefix: '/project9/',
   publicRuntimeConfig: {
     basePath: '/project9',

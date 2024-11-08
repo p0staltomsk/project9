@@ -62,17 +62,10 @@ class ServiceHandler:
 
     async def handle_chat(self, request: web.Request) -> web.Response:
         try:
-            # Пробуем распарсить JSON
-            try:
-                data = await request.json()
-            except json.JSONDecodeError:
-                return web.json_response(
-                    {"error": "Invalid JSON format"}, 
-                    status=400
-                )
-
-            # Проверяем наличие сообщения
+            data = await request.json()
             message = data.get('message')
+            context = data.get('context', [])  # Получаем контекст диалога
+
             if not message:
                 return web.json_response(
                     {"error": "No message provided"}, 
@@ -80,8 +73,8 @@ class ServiceHandler:
                 )
 
             try:
-                # Получаем ответ от Groq
-                ai_response = await self.groq_api.get_response(message)
+                # Отправляем весь контекст в Groq API
+                ai_response = await self.groq_api.get_response(message, context)
                 message_id = str(hash(ai_response))
 
                 # Анализируем через Neo API

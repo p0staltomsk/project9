@@ -15,13 +15,17 @@ class GroqAPI:
         self.base_url = 'https://api.groq.com/openai/v1/chat/completions'
         self.model = 'mixtral-8x7b-32768'
 
-    async def get_response(self, message: str, max_retries: int = 3) -> str:
+    async def get_response(self, message: str, context: list = None, max_retries: int = 3) -> str:
         """
-        Асинхронно получает ответ от Groq API с повторными попытками.
+        Асинхронно получает ответ от Groq API с учетом контекста диалога.
         """
         for attempt in range(max_retries):
             try:
                 logger.info(f"Attempt {attempt + 1}/{max_retries} - Sending request to Groq API: {message[:50]}...")
+                
+                messages = context if context else []
+                if not context:
+                    messages = [{'role': 'user', 'content': message}]
                 
                 response = requests.post(
                     self.base_url,
@@ -31,7 +35,7 @@ class GroqAPI:
                     },
                     json={
                         'model': self.model,
-                        'messages': [{'role': 'user', 'content': message}],
+                        'messages': messages,
                         'temperature': 0.7,
                         'max_tokens': 1000
                     },

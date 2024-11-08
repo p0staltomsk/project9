@@ -6,21 +6,14 @@ import { useRouter } from 'next/router'
 import getConfig from 'next/config'
 import Head from 'next/head'
 import { APIClient } from '../types/api'
-import { SYSTEM_INSTRUCTION } from '../features/chat/model/constants'
+import { CONSOLE_SYSTEM_INSTRUCTION, PREPARED_RESPONSES } from '../features/chat/model/constants'
 
 const { publicRuntimeConfig } = getConfig()
-
-const preparedResponses = [
-  'Accessing the neural network...',
-  'Decrypting your request...',
-  'Scanning the digital horizon...',
-  'Interfacing with the cybernetic mainframe...',
-  'Compiling data from the neon archives...',
-]
 
 interface Message {
   content: string;
   role: 'user' | 'assistant' | 'system';
+  isTemporary?: boolean;
 }
 
 export default function CyberpunkConsoleChat() {
@@ -30,6 +23,7 @@ export default function CyberpunkConsoleChat() {
   ])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isFirstMessage, setIsFirstMessage] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)  
   const router = useRouter()
@@ -38,11 +32,11 @@ export default function CyberpunkConsoleChat() {
     e.preventDefault()
     if (input.trim() && !isLoading) {
       setIsLoading(true)
-      const userMessage: Message = { role: 'user', content: input }
-      setMessages(prevMessages => [...prevMessages, userMessage])
+      const userMessage = input.trim()
+      setMessages(prevMessages => [...prevMessages, { role: 'user', content: userMessage }])
       setInput('')
 
-      if (input.toLowerCase() === 'comeback') {
+      if (userMessage.toLowerCase() === 'comeback') {
         setMessages(prevMessages => [
           ...prevMessages,
           { content: 'Returning to the starting page...', role: 'system' },
@@ -52,36 +46,66 @@ export default function CyberpunkConsoleChat() {
         return
       }
 
-      // Add a prepared response
-      const preparedResponse: Message = { 
-        role: 'assistant', 
-        content: preparedResponses[Math.floor(Math.random() * preparedResponses.length)] 
-      }
-      setMessages(prevMessages => [...prevMessages, preparedResponse])
-
       try {
-        const apiClient = new APIClient({
-          endpoint: publicRuntimeConfig.neoApiEndpoint,
-          apiKey: process.env.GROG_API_KEY
+        // Добавляем промежуточное сообщение
+        const preparedResponse = PREPARED_RESPONSES[Math.floor(Math.random() * PREPARED_RESPONSES.length)]
+        setMessages(prevMessages => [...prevMessages, { 
+          role: 'assistant', 
+          content: preparedResponse,
+          isTemporary: true 
+        }])
+
+        // Формируем контекст для API
+        const context = [
+          ...(isFirstMessage ? [{ role: 'system', content: CONSOLE_SYSTEM_INSTRUCTION }] : []),
+          ...messages
+            .filter(msg => !msg.isTemporary && !PREPARED_RESPONSES.includes(msg.content))
+            .map(msg => ({
+              role: msg.role,
+              content: msg.content.trim()
+            }))
+        ]
+
+        if (isFirstMessage) {
+          setIsFirstMessage(false)
+        }
+
+        const response = await fetch('/project9/api/neo/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: userMessage,
+            context: context
+          })
         })
 
-        const response = await apiClient.processWithGrog(
-          [...messages, userMessage],
-          SYSTEM_INSTRUCTION
-        )
-
-        const aiMessage: Message = { 
-          role: 'assistant', 
-          content: response.choices[0].message.content 
+        if (!response.ok) {
+          throw new Error('Network response was not ok')
         }
-        setMessages(prevMessages => [...prevMessages, aiMessage])
+
+        const data = await response.json()
+        
+        if (data.status === 'success' && data.message) {
+          const cleanedMessage = data.message.trim().replace(/\n+/g, ' ')
+          setMessages(prevMessages => [
+            ...prevMessages,
+            { role: 'assistant', content: cleanedMessage }
+          ])
+
+          if (data.metrics && !data.metrics.error) {
+            console.log('Message metrics:', data.metrics)
+          }
+        } else {
+          throw new Error(data.error || 'Unknown error occurred')
+        }
       } catch (error) {
         console.error('Error:', error)
-        const errorMessage: Message = { 
-          role: 'assistant', 
-          content: 'A glitch in the Matrix. Please try your request again.' 
-        }
-        setMessages(prevMessages => [...prevMessages, errorMessage])
+        setMessages(prevMessages => [
+          ...prevMessages,
+          { role: 'assistant', content: 'A glitch in the Matrix. Please try your request again.' }
+        ])
       } finally {
         setIsLoading(false)
       }

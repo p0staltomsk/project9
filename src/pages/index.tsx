@@ -11,6 +11,7 @@ import { CyberNotification } from '../components/CyberNotification'
 import { useChat } from '../features/chat/hooks/useChat'
 import { ChatMessage } from '../features/chat/ui/ChatMessage'
 import { AnimatedBackground } from '../features/chat/ui/AnimatedBackground'
+import { SYSTEM_INSTRUCTION, PREPARED_RESPONSES } from '../features/chat/model/constants'
 
 const { publicRuntimeConfig } = getConfig()
 
@@ -53,7 +54,8 @@ function useClientOnly<T>(value: T): T | null {
 }
 
 export default function CyberpunkAIChat() {
-  const { messages, isLoading, notification, sendMessage, clearNotification, setSystemError } = useChat()
+  const [loading, setLoading] = useState(false)
+  const { messages, notification, sendMessage, clearNotification, setSystemError } = useChat()
   const [input, setInput] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -61,27 +63,69 @@ export default function CyberpunkAIChat() {
 
   const clientWindowSize = useClientOnly(windowSize)
 
+  const [isFirstMessage, setIsFirstMessage] = useState(true)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!input.trim() || loading) return
+
     try {
+      setLoading(true)
+      const userMessage = input.trim()
+      setInput('')
+
+      await sendMessage(userMessage, '')
+
+      const preparedResponse = PREPARED_RESPONSES[Math.floor(Math.random() * PREPARED_RESPONSES.length)]
+      await sendMessage('', preparedResponse, true)
+
+      const context = [
+        ...(isFirstMessage ? [{ role: 'system', content: SYSTEM_INSTRUCTION }] : []),
+        ...messages
+          .filter(msg => !msg.isTemporary && !PREPARED_RESPONSES.includes(msg.content))
+          .map(msg => ({
+            role: msg.role,
+            content: msg.content.trim()
+          }))
+      ]
+
+      if (isFirstMessage) {
+        setIsFirstMessage(false)
+      }
+
       const response = await fetch('/project9/api/neo/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: input })
-      });
-      
+        body: JSON.stringify({ 
+          message: userMessage,
+          context: context
+        })
+      })
+
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error('Network response was not ok')
       }
 
-      const data = await response.json();
-      await sendMessage(input, data.message);
-      setInput('');
+      const data = await response.json()
+      
+      if (data.status === 'success' && data.message) {
+        const cleanedMessage = data.message.trim().replace(/\n+/g, ' ')
+        await sendMessage('', cleanedMessage, false)
+        
+        if (data.metrics && !data.metrics.error) {
+          console.log('Message metrics:', data.metrics)
+        }
+      } else {
+        throw new Error(data.error || 'Unknown error occurred')
+      }
+
     } catch (error) {
-      console.error('Error:', error);
-      setSystemError('SYSTEM ERROR: Neural interface malfunction detected');
+      console.error('Error:', error)
+      setSystemError('Neural network connection failed')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -171,22 +215,22 @@ export default function CyberpunkAIChat() {
               ref={inputRef}
               className="flex-1 bg-black bg-opacity-50 border border-green-500 rounded-md p-2 text-green-300 focus:outline-none focus:ring-2 focus:ring-green-400 placeholder-green-700"
               placeholder="Enter your command..."
-              disabled={isLoading}
+              disabled={loading}
             />
             <motion.button
               type="submit"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`bg-green-500 text-black rounded-md p-2 transition-colors duration-200 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-400'
+              className={`bg-green-500 text-black rounded-md p-2 transition-colors duration-200 ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-400'
                 }`}
-              disabled={isLoading}
+              disabled={loading}
             >
               <Send size={20} />
             </motion.button>
           </div>
         </form>
 
-        {isLoading && (
+        {loading && (
           <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
             <motion.div
               animate={{ rotate: 360 }}

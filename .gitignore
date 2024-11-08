@@ -24,6 +24,7 @@ dist-ssr
 .next
 .env
 /src/service/venv/*
+__pycache__
 .pytest_cache
 
 # Editor directories and files

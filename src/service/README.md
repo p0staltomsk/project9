@@ -327,7 +327,7 @@ tests/
 └── integration/
     ├── test_api_flow.py    # Тесты API взаимодействий
     ├── test_redis.py       # Тесты Redis интеграции
-    └── test_websocket.py   # Тесты WebSocket
+    └─ test_websocket.py   # Тесты WebSocket
 ```
 
 Запуск:
@@ -421,6 +421,7 @@ async def client(aiohttp_client, app):
 ```bash
 # Из директории src/service
 pytest tests/ -v  # Все тесты
+pytest tests/test_env.py -v  # Тесты окружения
 pytest tests/test_smoke.py -v  # Только smoke тесты
 pytest tests/test_service.py -v  # Только unit тесты
 pytest tests/ -v -m integration  # Только интеграционные тесты
@@ -495,6 +496,13 @@ pytest --durations=10
 
 ## Тестирование API вручную
 
+# Тест chat endpoint с Groq API
+curl -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Who are you? Tell me about yourself in one sentence."
+  }'
+
 ### Groq API
 
 Прямой тест Groq API:
@@ -528,3 +536,7 @@ curl -X POST https://api.groq.com/openai/v1/chat/completions \
   }
 }
 ```
+
+### Neo API
+
+Прямой тест Neo API:
