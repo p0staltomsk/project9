@@ -1,11 +1,10 @@
 import pytest
 from aiohttp import web
-from unittest.mock import AsyncMock, patch
-
+from typing import AsyncGenerator, Any
 from src.service.main import ServiceHandler, health_check
 
 @pytest.fixture
-async def app():
+async def app() -> web.Application:
     """Фикстура для создания тестового приложения"""
     app = web.Application()
     handler = ServiceHandler()
@@ -16,21 +15,21 @@ async def app():
     return app
 
 @pytest.fixture
-async def client(aiohttp_client, app):
+async def client(aiohttp_client: Any, app: web.Application) -> AsyncGenerator:
     """Фикстура для создания тестового клиента"""
     return await aiohttp_client(app)
 
 class TestServiceUnit:
     """Базовые тесты сервиса"""
 
-    async def test_health_check(self, client):
+    async def test_health_check(self, client: Any) -> None:
         """Проверка что health endpoint работает"""
         resp = await client.get('/health')
         assert resp.status == 200
         data = await resp.json()
         assert data['status'] == 'ok'
 
-    async def test_chat_validation(self, client):
+    async def test_chat_validation(self, client: Any) -> None:
         """Проверка базовой валидации входных данных"""
         # Пустое сообщение
         resp = await client.post('/chat', json={'message': ''})
@@ -39,11 +38,6 @@ class TestServiceUnit:
         # Отсутствует поле message
         resp = await client.post('/chat', json={'wrong_field': 'test'})
         assert resp.status == 400
-
-    # TODO: Добавить тесты WebSocket функционала после реализации
-    # async def test_websocket_handling(self):
-    #     """Проверка работы с WebSocket соединениями"""
-    #     pass
 
 if __name__ == '__main__':
     pytest.main(['-v', __file__])

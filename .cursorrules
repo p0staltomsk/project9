@@ -1,5 +1,8 @@
 Наш чат работает через текстовую генерацию ответа от GROQ и отправку запросов в NEOAPI для анализа текста и получения метрик.
 
+## Основной пул работы:
+src/BACKLOG.md - список задач
+
 README.md - описание проекта
 docs - документация проекта
 
@@ -29,4 +32,6 @@ scripts/docker.http - тесты для http запросов к сервису
 scripts/README.md - описание скриптов
 
 Схема работы сервиса:
-client -> SERVICE -> GROG_API -> SERVICE -> NEOAPI/client -> SERVICE <- (WebSocket lazyload from redis NEOAPI metrics) client
+client -> SERVICE -> GROG_API -> SERVICE -> NEOAPI -> SERVICE -> client
+                                                  -> REDIS
+                                                  -> WEBSOCKET

@@ -1,56 +1,41 @@
 # Neon Nexus AI Chat 🤖
 
-Cyberpunk-themed AI chat interface with neural network integration, advanced metrics analysis, and futuristic design.
+Cyberpunk-themed AI chat interface with real-time AI detection metrics and analysis.
 
 ## 🌟 Features
 
 ### Current Features
-- 🤖 Multi-layer AI processing (Grog AI, Local LLM, Neo API)
-- 🎨 Dynamic animated background with cyberpunk aesthetics
-- 💻 Advanced console terminal interface
-- 👤 Cyber personal account dashboard
-- 🔄 Adaptive chat personalities
-- ⚡ Real-time message updates
-- 🌐 Production-ready deployment
-- 📊 Advanced metrics analysis
-- 💎 NeoCredits reward system
-- 🎮 Achievement system
+- 🤖 Dual-layer AI processing (Grog AI + Neo API)
+- 📊 Real-time AI detection metrics
+- ⚡ WebSocket updates
+- 💾 Redis caching
+- 🐳 Docker deployment
+- 🧪 Full test coverage
 
 ### Technical Stack
-- Next.js 15.0
-- TypeScript
-- Framer Motion
-- Tailwind CSS
-- Feature-Sliced Design (FSD)
-- TimescaleDB for metrics
-- Redis for caching
-- Docker infrastructure
+- Next.js 15.0 (Frontend)
+- Python 3.12 (Backend)
+- Redis
+- WebSocket
+- Docker
 
-## 🚀 Development Roadmap
+## 🚀 Quick Start
 
-### Phase 1: Core Enhancement
-- [ ] Full Neo API integration
-- [ ] Advanced metrics collection
-- [ ] Real-time content verification
-- [ ] Custom detection sensitivity
-- [ ] Analytics dashboard
+### Backend
+```bash
+# Clone repository
+git clone https://github.com/your-repo/neon-nexus.git
+cd neon-nexus
 
-### Phase 2: Advanced Features
-- [ ] Neural network training interface
-- [ ] Custom AI personality creation
-- [ ] Multi-language support
-- [ ] Voice interface integration
-- [ ] Virtual reality mode
+# Setup environment
+cp .env.example .env
+# Edit .env with your API keys
 
-### Phase 3: System Integration
-- [ ] Blockchain integration
-- [ ] Decentralized storage
-- [ ] AI model fine-tuning
-- [ ] Advanced security
-- [ ] API marketplace
+# Start services
+./scripts/docker.sh --start
+```
 
-## 🛠 Installation
-
+### Frontend
 ```bash
 # Install dependencies
 pnpm install
@@ -58,10 +43,8 @@ pnpm install
 # Development
 pnpm dev
 
-# Production build
+# Production
 pnpm build
-
-# Start production server
 pnpm start
 ```
 
@@ -70,98 +53,61 @@ pnpm start
 ```env
 GROG_API_KEY=your_grog_api_key
 NEO_API_KEY=your_neo_api_key
-DB_PASSWORD=your_db_password
-GRAFANA_PASSWORD=your_grafana_password
+REDIS_PASSWORD=your_redis_password
 ```
 
 ## 📚 Documentation
 
-### Architecture & Infrastructure
+### Core Documentation
 - [API Documentation](./docs/API.md) - API architecture and endpoints
 - [Infrastructure Guide](./docs/INFRASTRUCTURE.md) - Deployment and infrastructure
 - [Neo API Integration](./docs/NEO_API_INTEGRATION.md) - Neo API details
 - [Metrics Analysis](./docs/METRICS_ANALYSIS.md) - Metrics and analysis
+- [Development Roadmap](./docs/ROADMAP.md) - Future plans and features
 
-### Features & Systems
+### Technical Guides
 - [Grog AI Models](./docs/GROG.md) - Available AI models
-- [Goals System](./docs/GOALS.md) - Achievements and rewards
-- [Monetisation](./docs/MONETISATION.md) - Pricing and features
+- [Service README](./src/service/README.md) - Backend service details
+- [Development Backlog](./src/BACKLOG.md) - Current progress
 
-## 💰 Monetisation Model
-
-### Free Tier
-- Basic chat functionality
-- Standard response time
-- Console access
-- Basic metrics
-
-### Premium Tier ($9.99/month)
-- Priority processing
-- Premium models
-- Media processing
-- Custom themes
-
-### Sponsor Tier ($49.99/month)
-- Experimental features
-- Custom model training
-- Ultra-fast streaming
-- Special access
-
-See [Monetisation](./docs/MONETISATION.md) for full details.
-
-## 🎯 Achievement System
-
-Users can earn NeoCredits (NC) through:
-- Quality conversations
-- Unique interactions
-- System achievements
-- Special events
-
-See [Goals System](./docs/GOALS.md) for details.
-
-## 🔧 Infrastructure
+## 🔄 Architecture
 
 ```mermaid
 graph TD
-    Client[Client App] --> Nginx[Nginx Reverse Proxy]
-    Nginx --> NextJS[Next.js App]
-    NextJS --> LocalLLM[Local LLM Server]
-    NextJS --> Redis[Redis Cache]
-    NextJS --> TimescaleDB[TimescaleDB]
-    NextJS --> GrogAPI[Grog AI]
-    NextJS --> NeoAPI[Neo API]
+    Client[Client App] --> NextJS[Next.js App]
+    NextJS --> SERVICE[Python Service]
+    SERVICE --> GrogAPI[Grog AI]
+    SERVICE --> NeoAPI[Neo API]
+    SERVICE --> Redis[Redis Cache]
+    SERVICE --> WebSocket[WebSocket]
 ```
-
-See [Infrastructure Guide](./docs/INFRASTRUCTURE.md) for deployment details.
 
 ## 🧪 Testing
 
 ```bash
-# Run API tests
-./scripts/test-api.sh
+# Run service tests
+cd src/service
+./venv.sh  # Setup Python environment
+pytest     # Run unit tests
 
-# Run integration tests
-./scripts/test-integration.sh
-
-# Run metrics tests
-./scripts/test-metrics.sh
+# Run Docker integration tests
+./scripts/docker.test.sh
 ```
 
 ## 🔒 Security
 
-- Rate limiting
-- API key rotation
+- API key management
 - Request validation
 - Error handling
-- Audit logging
+- Redis security
+- WebSocket validation
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+3. Run tests: `./scripts/docker.test.sh`
+4. Create a Pull Request
 
 ## 📜 License
 
@@ -169,7 +115,7 @@ MIT License - feel free to use this project for any purpose.
 
 ## 🔮 Vision
 
-The Neon Nexus AI Chat aims to become a fully immersive cyberpunk communication platform, bridging human interaction and artificial intelligence in a stylized, futuristic environment.
+Neon Nexus AI Chat aims to provide real-time AI content analysis and metrics visualization in a cyberpunk-themed interface.
 
 ---
 Built with 💚 by Cyberpunk Enthusiasts

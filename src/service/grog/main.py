@@ -5,6 +5,7 @@ import logging
 from typing import Dict, Optional, List, Any
 import requests
 import asyncio
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,7 @@ class GroqAPI:
                 if not context:
                     messages = [{'role': 'user', 'content': message}]
 
+                start_time = time.time()
                 response = requests.post(
                     self.base_url,
                     headers={
@@ -53,6 +55,7 @@ class GroqAPI:
                     },
                     timeout=30
                 )
+                elapsed = time.time() - start_time
 
                 if response.status_code == 503:
                     if attempt < max_retries - 1:
@@ -67,6 +70,13 @@ class GroqAPI:
                 result = response.json()
                 content: str = result['choices'][0]['message']['content']
                 logger.info(f"Received response from Groq API: {content[:50]}...")
+                logger.info(f"Response time: {elapsed:.2f}s")
+
+                if hasattr(response, 'usage'):
+                    logger.info(f"Tokens used: {response.usage.total_tokens} "
+                               f"(prompt: {response.usage.prompt_tokens}, "
+                               f"completion: {response.usage.completion_tokens})")
+
                 return content
 
             except Exception as e:

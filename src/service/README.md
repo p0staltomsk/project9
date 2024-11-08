@@ -260,4 +260,117 @@ curl -X POST https://api.neoapi.ai/analyze \
     "prompt": "What is the meaning of life?",
     "full_metrics": true
 }'
+
+Ответ:
+{"analysis_id":"7bf4f560-df64-40f2-a760-5684b016da79","text_id":"1f48084c-99b0-4f30-8e80-9a31ef45303c","is_ai_generated":true,"threshold":70.0,"human_likeness_score":32.0,"metrics":{"text_coherence_complexity":{"sentence_coherence":1.0,"complexity_score":-0.0,"burstiness":0.0,"perplexity":4.624622148832153},"readability_metrics":{"flesch_score":0.9686,"gunning_fog_score":0.1,"smog_score":0.0,"avg_words_per_sentence":2.0},"vocabulary_lexical_diversity":{"unique_word_ratio":0.04,"lexical_diversity":0.05,"rare_word_ratio":1.0,"key_term_significance":0.3719653789318132},"topic_modeling_analysis":{"topic_diversity":0.299573278427124,"lda_coverage":0.0,"main_topic_likelihood":0.05000000074505806,"topic_variance":0.0},"sentiment_subjectivity":{"sentiment_score":0.5,"sentiment_label":"neutral","subjectivity_score":0.0,"text_similarity":1.0},"stylistic_features":{"formality":0.5,"passive_voice_ratio":0.0},"statistical_metrics":{"repetition_rate":1.0,"text_length":224,"punctuation_density":1.0},"ai_signature_analysis":{"phrase_density":0.0,"bigram_density":0.0,"trigram_density":0.0,"word_density":0.0},"structural_analysis":{"noun_percentage":0.5,"verb_percentage":0.0,"adjective_percentage":0.0,"adverb_percentage":0.0,"entity_count":25,"entity_type_distribution":{"GPE":1,"ORG":24}}},"elapsed_time":"0.69 seconds"}
+```
+
+## Настройка окружения разработки
+
+### 1. Виртуальное окружение
+```bash
+# Создание и активация
+python3.12 -m venv venv
+source venv/bin/activate
+
+# Установка зависимостей и очистка кешей
+./venv.sh
+```
+
+### 2. IDE настройки (VS Code)
+
+1. Установите расширения:
+- Python
+- Pylance
+- Mypy Type Checker
+
+2. Настройки VS Code (`settings.json`):
+```json
+{
+    "python.linting.mypyEnabled": true,
+    "python.linting.enabled": true,
+    "python.linting.mypyArgs": [
+        "--config-file",
+        "src/service/mypy.ini"
+    ]
+}
+```
+
+### 3. Конфигурация проекта
+
+Проект использует два основных конфига:
+
+1. `src/service/mypy.ini` - настройки типизации:
+```ini
+# Базовые проверки
+warn_return_any = True
+warn_unused_configs = True
+
+# Отключены строгие проверки для постепенного внедрения
+disallow_untyped_defs = False
+check_untyped_defs = False
+
+# Игнорирование внешних библиотек
+[mypy-neoapi_sdk.*]
+ignore_missing_imports = True
+[mypy-pytest.*]
+ignore_missing_imports = True
+[mypy-aiohttp.*]
+ignore_missing_imports = True
+```
+
+2. `pytest.ini` - настройки тестирования:
+```ini
+# Логирование
+log_cli = true
+log_cli_level = INFO
+
+# Маркеры тестов
+markers =
+    integration: медленные тесты с реальными API
+    smoke: быстрые проверки основного функционала
+
+# Настройка путей и asyncio
+pythonpath = src/service
+asyncio_mode = auto
+```
+
+## Работа с типами
+
+### Базовые правила
+1. Новый код пишем с типами:
+```python
+def process_message(text: str) -> Dict[str, Any]:
+    return {"status": "ok", "text": text}
+```
+
+2. Игнорирование ошибок:
+```python
+# Для внешних библиотек без типов
+from external_lib import something  # type: ignore
+
+# Для конкретной строки
+result = unsafe_function()  # type: ignore[no-any-return]
+```
+
+3. Проверка типов:
+```bash
+# Через IDE (рекомендуется)
+# VS Code: Ctrl+Shift+P -> Type Check
+
+# Через консоль
+mypy --config-file src/service/mypy.ini src/service/
+```
+
+### Известные проблемы
+1. neoapi-sdk не имеет аннотаций типов:
+```python
+# В src/service/neoapi/__init__.py
+from neoapi_sdk import NeoApiClientAsync  # type: ignore[import]
+```
+
+2. Циклические импорты в тестах:
+```python
+# В тестах используем относительные импорты
+from src.service.main import ServiceHandler  # вместо from main import
 ```

@@ -1,61 +1,81 @@
+import aiohttp
 import logging
 import json
 from typing import Dict, Any
-try:
-    from neoapi_sdk.client import NeoApiClientAsync
-    from neoapi_sdk.tracking import track_llm_output
-except ImportError:
-    from neoapi_sdk import NeoApiClientAsync, track_llm_output
-import asyncio
 
 logger = logging.getLogger(__name__)
 
 class NeoAPI:
-    def __init__(self, api_key: str):
+    API_URL = "https://api.neoapi.ai/analyze"
+
+    def __init__(self, api_key: str) -> None:
         if not api_key:
             raise ValueError("NEO_API_KEY is required")
         self.api_key = api_key
         self.logger = logging.getLogger(__name__)
 
     async def analyze_text(self, text: str) -> Dict[str, Any]:
-        """Анализирует текст через Neo API используя асинхронный SDK."""
+        """Анализирует текст через Neo API."""
+        # Проверяем входной текст
+        if not text or len(text.strip()) == 0:
+            self.logger.warning("Empty text received from GROQ")
+            return {
+                "status": "error",
+                "error": "Empty response from GROQ",
+                "is_ai_generated": False,  # Важно для фронта
+                "human_likeness_score": 0,
+                "metrics": {}
+            }
+
         self.logger.info(f"Starting analysis of text: {text[:50]}...")
 
-        async with NeoApiClientAsync(api_key=self.api_key) as client:
-            @track_llm_output(
-                client=client,
-                project="neoapi",
-                group="playground",
-                analysis_slug="playground",
-                need_analysis_response=True,
-                format_json_output=True
-            )
-            async def analyze_with_neo(text_to_analyze: str) -> str:
-                return text_to_analyze
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
 
-            # Делаем запрос
-            await analyze_with_neo(text)
-            await asyncio.sleep(1)
+        payload = {
+            "text": text,
+            "project": "neoapi",
+            "group": "playground",
+            "analysis_slug": "playground",
+            "prompt": "What is the meaning of life?",
+            "full_metrics": True,
+            "language": "auto"
+        }
 
-            # Получаем ответ из client.logger.records
-            if hasattr(client, 'logger'):
-                for record in client.logger.records:
-                    if isinstance(record, str) and "Analysis Response:" in record:
-                        json_str = record.split("Analysis Response:", 1)[1].strip()
-                        if json_str.startswith('\n'):
-                            json_str = json_str[1:]
-                        return dict(json.loads(json_str))
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(self.API_URL, json=payload, headers=headers) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        self.logger.error(f"API error {response.status}: {error_text}")
+                        self.logger.error(f"Request payload: {json.dumps(payload, ensure_ascii=False)}")
+                        return {
+                            "status": "error",
+                            "error": "Neo API analysis failed",
+                            "is_ai_generated": False,  # Дефолтное значение
+                            "human_likeness_score": 0,
+                            "metrics": {}
+                        }
 
-            # Если не нашли в client.logger, ищем стандартном логгере
-            neo_logger = logging.getLogger('neoapi.client_async')
-            for handler in neo_logger.handlers:
-                if isinstance(handler, logging.StreamHandler):
-                    log_output = handler.stream.getvalue() if hasattr(handler.stream, 'getvalue') else ''
-                    for line in log_output.split('\n'):
-                        if "Analysis Response:" in line:
-                            json_str = line.split("Analysis Response:", 1)[1].strip()
-                            return dict(json.loads(json_str))
+                    data = await response.json()
+                    self.logger.info(f"Got API response: {json.dumps(data, indent=2)}")
 
-            # Если всё проебалось, хотя бы логируем это
-            self.logger.error("Failed to get response from any source")
-            return {}
+                    return {
+                        "status": "success",
+                        "text": text,
+                        "is_ai_generated": data.get("is_ai_generated", False),
+                        "human_likeness_score": data.get("human_likeness_score", 0),
+                        "metrics": data.get("metrics", {})
+                    }
+
+        except Exception as e:
+            self.logger.error(f"Error analyzing text: {e}")
+            return {
+                "status": "error",
+                "error": "Neo API connection failed",
+                "is_ai_generated": False,
+                "human_likeness_score": 0,
+                "metrics": {}
+            }
