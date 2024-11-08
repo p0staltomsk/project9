@@ -23,6 +23,7 @@ Cyberpunk-themed AI chat interface with real-time AI detection metrics and analy
 ### Technical Stack
 - Next.js 15.0 (Frontend)
 - Python 3.12 (Backend)
+- [Neo API SDK](https://pypi.org/project/neoapi-sdk/) (AI Detection)
 - Redis
 - WebSocket
 - Docker
@@ -120,6 +121,10 @@ pytest     # Run unit tests
 ## 📜 License
 
 MIT License - feel free to use this project for any purpose.
+
+[![Neo API SDK](https://img.shields.io/badge/Neo%20API-SDK-blue)](https://pypi.org/project/neoapi-sdk/)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-3120/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 🔮 Vision
 

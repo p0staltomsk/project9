@@ -1,7 +1,52 @@
 # Neo API Integration Guide
 
 ## Overview
-Integration with Neo API for content analysis and metrics collection.
+Integration with [Neo API](https://neoapi.ai/) for content analysis and metrics collection.
+
+## SDK Integration
+
+Neo API предоставляет официальный Python SDK:
+```bash
+pip install neoapi-sdk
+```
+
+[![Neo API SDK](https://img.shields.io/badge/Neo%20API-SDK-blue)](https://pypi.org/project/neoapi-sdk/)
+
+```python
+from neoapi_sdk import NeoApiClientAsync
+
+client = NeoApiClientAsync(api_key="your_api_key")
+response = await client.analyze_text("Your text here")
+```
+
+## Custom Implementation
+
+For more control, we use a custom implementation:
+
+```python
+class NeoAPI:
+    API_URL = "https://api.neoapi.ai/analyze"
+
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+
+    async def analyze_text(self, text: str) -> Dict[str, Any]:
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "text": text,
+            "project": "neoapi",
+            "group": "playground",
+            "analysis_slug": "playground",
+            "full_metrics": True,
+            "language": "auto"
+        }
+
+        # API call implementation...
+```
 
 ## Flow Diagram
 ```mermaid
