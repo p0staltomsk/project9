@@ -19,6 +19,7 @@ scripts/
 ```bash
 # Установка прав на выполнение
 chmod +x scripts/docker.sh
+chmod +x scripts/build.sh
 chmod +x scripts/docker.test.sh
 
 # Проверка health endpoint

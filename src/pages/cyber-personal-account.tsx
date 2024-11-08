@@ -1,5 +1,3 @@
-// /var/www/html/project9/pages/cyber-personal-account.tsx
-
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 

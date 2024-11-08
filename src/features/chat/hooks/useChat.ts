@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react'
 import { Message } from '../types'
-import { SYSTEM_INSTRUCTION } from '../model/constants'
 
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([

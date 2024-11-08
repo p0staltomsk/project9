@@ -1,11 +1,8 @@
-// /var/www/html/project9/pages/console.tsx
-
 import React, { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/router'
 import getConfig from 'next/config'
 import Head from 'next/head'
-import { APIClient } from '../types/api'
 import { CONSOLE_SYSTEM_INSTRUCTION, PREPARED_RESPONSES } from '../features/chat/model/constants'
 
 const { publicRuntimeConfig } = getConfig()

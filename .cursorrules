@@ -15,4 +15,4 @@
 /src/service/README.md - описание работы с кодом
     
 Схема работы сервиса: 
-clien -> SERVICE -> GROG_API -> SERVICE -> NEOAPI/client -> SERVICE <- (lazyload from ws NEOAPI metrics) client
+client -> SERVICE -> GROG_API -> SERVICE -> NEOAPI/client -> SERVICE <- (lazyload from ws NEOAPI metrics) client

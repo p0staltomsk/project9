@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion'
-import { Message } from '../model/types'
+import { Message } from '../types'
 
 interface ChatMessageProps {
-  message: Message
+  message: Message;
 }
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {

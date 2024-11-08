@@ -28,6 +28,7 @@ const nextConfig = {
   compiler: {
     styledComponents: true,
   },
+  distDir: '.next',
   async rewrites() {
     return [
       {
