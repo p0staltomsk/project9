@@ -1,7 +1,11 @@
 import logging
 import json
 from typing import Dict, Any
-from neoapi import NeoApiClientAsync, track_llm_output
+try:
+    from neoapi_sdk.client import NeoApiClientAsync
+    from neoapi_sdk.tracking import track_llm_output
+except ImportError:
+    from neoapi_sdk import NeoApiClientAsync, track_llm_output
 import asyncio
 
 logger = logging.getLogger(__name__)
@@ -42,7 +46,7 @@ class NeoAPI:
                             json_str = json_str[1:]
                         return dict(json.loads(json_str))
 
-            # Если не нашли в client.logger, ищем в стандартном логгере
+            # Если не нашли в client.logger, ищем стандартном логгере
             neo_logger = logging.getLogger('neoapi.client_async')
             for handler in neo_logger.handlers:
                 if isinstance(handler, logging.StreamHandler):

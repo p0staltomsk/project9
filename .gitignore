@@ -11,6 +11,34 @@ lerna-debug.log*
 .env
 .env.local
 .env.*
+.venv
+venv/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+bin/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+.mypy_cache/
 
 # Docker
 backup/
@@ -22,10 +50,7 @@ dist/
 dist-ssr
 *.local
 .next
-.env
 /src/service/venv/*
-__pycache__
-.pytest_cache
 
 # Editor directories and files
 .vscode/*
@@ -37,3 +62,6 @@ __pycache__
 *.njsproj
 *.sln
 *.sw?
+*~
+.*.swp
+.*.swo
