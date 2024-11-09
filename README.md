@@ -10,7 +10,7 @@
 
 Cyberpunk-themed AI chat interface with real-time AI detection metrics and analysis.
 
-## 🌟 Latest Updates (v0.1)
+## 🌟 Latest Updates (v0.2)
 - ✨ Real-time AI metrics visualization
 - 🔄 Improved error handling with cyberpunk-style messages
 - 🎨 Enhanced UI with metric details
