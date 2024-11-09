@@ -9,8 +9,6 @@ import { CyberNotification } from '../components/CyberNotification'
 import { useChat } from '../features/chat/hooks/useChat'
 import { ChatMessage } from '../features/chat/ui/ChatMessage'
 import { AnimatedBackground } from '../features/chat/ui/AnimatedBackground'
-// @not_use import { SYSTEM_INSTRUCTION, PREPARED_RESPONSES } from '../features/chat/model/constants'
-// @not_use import { AIMetrics } from '../features/chat/ui/AIMetrics'
 
 const { publicRuntimeConfig } = getConfig()
 

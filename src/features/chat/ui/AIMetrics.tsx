@@ -1,82 +1,95 @@
 import React, { useState } from 'react'
-import { Brain, Cpu, Terminal } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Metrics } from '../types'
 
 interface AIMetricsProps {
-  metrics: Metrics;
+  metrics: Metrics
 }
 
 export const AIMetrics: React.FC<AIMetricsProps> = ({ metrics }) => {
-  const [showDetails, setShowDetails] = useState(false);
+  const [showDetails, setShowDetails] = useState(false)
 
-  return (
-    <div className="mt-2 pt-2 border-t border-green-500/30">
-      <div className="flex items-center space-x-4 text-sm">
-        {/* AI Detection Score */}
-        <div className="flex items-center space-x-2">
-          <Brain className="w-4 h-4 text-purple-400" />
-          <span className={`${metrics.is_ai_generated ? 'text-red-400' : 'text-green-400'}`}>
-            {metrics.is_ai_generated ? 'AI Generated' : 'Human-like'}
-          </span>
+  const formatPercent = (value: number) => `${(value).toFixed(1)}%`
+  const formatScore = (value: number) => value.toFixed(2)
+
+  // Определяем, похож ли текст на человеческий
+  const isHumanLike = metrics.human_likeness_score > 50
+  const aiScore = 100 - metrics.human_likeness_score
+
+  // Базовые метрики всегда видны
+  const baseMetrics = (
+    <div className="flex space-x-4 text-sm">
+      <div className="flex items-center">
+        {isHumanLike ? (
+          <span className="text-cyan-400">👤 Human-Like: {formatPercent(metrics.human_likeness_score)}</span>
+        ) : (
+          <span className="text-cyan-400">🤖 AI Score: {formatPercent(aiScore)}</span>
+        )}
+      </div>
+      <div className="flex items-center">
+        <span className="text-purple-400">🧠 Coherence: {formatScore(metrics.metrics?.text_coherence_complexity?.sentence_coherence || 0)}</span>
+      </div>
+    </div>
+  )
+
+  // Расширенные метрики показываются по клику
+  const detailedMetrics = showDetails && (
+    <motion.div
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: 'auto', opacity: 1 }}
+      exit={{ height: 0, opacity: 0 }}
+      className="mt-2 grid grid-cols-2 gap-4 text-xs"
+    >
+      <div className="space-y-1">
+        <div className="text-green-400">
+          📖 Readability:
+          <div className="ml-2">
+            • Flesch: {formatScore(metrics.metrics?.readability_metrics?.flesch_score || 0)}
+            • Words/Sent: {formatScore(metrics.metrics?.readability_metrics?.avg_words_per_sentence || 0)}
+          </div>
         </div>
 
-        {/* Human Likeness Score */}
-        <div className="flex items-center space-x-2">
-          <Cpu className="w-4 h-4 text-blue-400" />
-          <span className="text-blue-300">
-            {metrics.human_likeness_score}% Human
-          </span>
+        <div className="text-blue-400">
+          🎯 Vocabulary:
+          <div className="ml-2">
+            • Unique Words: {formatPercent(metrics.metrics?.vocabulary_lexical_diversity?.unique_word_ratio || 0)}
+            • Diversity: {formatPercent(metrics.metrics?.vocabulary_lexical_diversity?.lexical_diversity || 0)}
+          </div>
         </div>
-
-        {/* Advanced Metrics Button */}
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="flex items-center space-x-1 text-green-400 hover:text-green-300"
-          onClick={() => setShowDetails(!showDetails)}
-        >
-          <Terminal className="w-4 h-4" />
-          <span>{showDetails ? 'Hide Details' : 'Show Details'}</span>
-        </motion.button>
       </div>
 
-      {/* Detailed Metrics */}
-      {showDetails && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          className="mt-2 grid grid-cols-3 gap-2 text-xs"
+      <div className="space-y-1">
+        <div className="text-orange-400">
+          💡 Sentiment:
+          <div className="ml-2">
+            • Type: {metrics.metrics?.sentiment_subjectivity?.sentiment_label || 'neutral'}
+            • Score: {formatScore(metrics.metrics?.sentiment_subjectivity?.sentiment_score || 0)}
+          </div>
+        </div>
+
+        <div className="text-red-400">
+          🎭 Style:
+          <div className="ml-2">
+            • Formality: {formatPercent(metrics.metrics?.stylistic_features?.formality || 0)}
+            • Complexity: {formatScore(metrics.metrics?.text_coherence_complexity?.complexity_score || 0)}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+
+  return (
+    <div className="mt-2 p-2 bg-black bg-opacity-50 rounded border border-green-500/30">
+      <div className="flex justify-between items-center">
+        {baseMetrics}
+        <button
+          onClick={() => setShowDetails(!showDetails)}
+          className="text-xs text-green-400 hover:text-green-300"
         >
-          {metrics.metrics?.text_coherence_complexity && (
-            <div className="p-2 rounded bg-black/30 border border-green-500/20">
-              <div className="text-green-400 mb-1">Coherence</div>
-              <div className="text-green-300">
-                {(metrics.metrics.text_coherence_complexity.sentence_coherence * 100).toFixed(1)}%
-              </div>
-            </div>
-          )}
-
-          {metrics.metrics?.readability_metrics && (
-            <div className="p-2 rounded bg-black/30 border border-green-500/20">
-              <div className="text-green-400 mb-1">Readability</div>
-              <div className="text-green-300">
-                {(metrics.metrics.readability_metrics.flesch_score * 100).toFixed(1)}%
-              </div>
-            </div>
-          )}
-
-          {metrics.metrics?.vocabulary_lexical_diversity && (
-            <div className="p-2 rounded bg-black/30 border border-green-500/20">
-              <div className="text-green-400 mb-1">Vocabulary</div>
-              <div className="text-green-300">
-                {(metrics.metrics.vocabulary_lexical_diversity.lexical_diversity * 100).toFixed(1)}%
-              </div>
-            </div>
-          )}
-        </motion.div>
-      )}
+          {showDetails ? 'Hide Details' : 'Show Details'}
+        </button>
+      </div>
+      {detailedMetrics}
     </div>
-  );
-};
+  )
+}
