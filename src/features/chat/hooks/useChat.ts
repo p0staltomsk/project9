@@ -1,6 +1,14 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { Message, Metrics } from '../types'
 import { SYSTEM_INSTRUCTION, PREPARED_RESPONSES } from '../model/constants'
+
+interface RateLimitError {
+  error: {
+    message: string;
+    type: 'tokens';
+    code: 'rate_limit_exceeded';
+  }
+}
 
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([{
@@ -34,6 +42,11 @@ export function useChat() {
   }])
   const [notification, setNotification] = useState<string>('')
   const [isFirstMessage, setIsFirstMessage] = useState(true)
+  const [isRateLimited, setIsRateLimited] = useState(false)
+  const [cooldownTime, setCooldownTime] = useState(0)
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null)
+  const cooldownTimer = useRef<NodeJS.Timeout | null>(null)
+  const sendMessageRef = useRef<((message: string) => Promise<void>) | null>(null)
 
   // Подготовка контекста для API
   const prepareContext = (userMessage: string) => {
@@ -66,8 +79,54 @@ export function useChat() {
     }])
   }
 
+  // Парсинг времени ожидания из сообщения об ошибке
+  const parseWaitTime = (errorMessage: string): number => {
+    const match = errorMessage.match(/try again in (\d+\.?\d*)s/)
+    return match ? Math.ceil(parseFloat(match[1])) : 5 // дефолтное значение 5 секунд
+  }
+
+  // Обработка rate limit теперь использует ref
+  const handleRateLimit = useCallback((error: RateLimitError, failedMessage: string) => {
+    const waitTime = parseWaitTime(error.error.message)
+    setIsRateLimited(true)
+    setCooldownTime(waitTime)
+    setPendingMessage(failedMessage)
+
+    setMessages(prev => [...prev, {
+      id: `system-${Date.now()}`,
+      role: 'system',
+      content: `Neural network cooling down. Estimated wait time: ${waitTime} seconds. Message will be retried automatically.`,
+      isTemporary: true
+    }])
+
+    if (cooldownTimer.current) {
+      clearInterval(cooldownTimer.current)
+    }
+
+    cooldownTimer.current = setInterval(() => {
+      setCooldownTime(prev => {
+        if (prev <= 1) {
+          clearInterval(cooldownTimer.current!)
+          setIsRateLimited(false)
+
+          // Используем ref для отправки
+          const messageToRetry = failedMessage
+          setTimeout(() => {
+            setMessages(prev => prev.filter(msg => !msg.isTemporary))
+            if (messageToRetry && sendMessageRef.current) {
+              sendMessageRef.current(messageToRetry)
+            }
+          }, 100)
+
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+  }, [])
+
   const sendMessage = useCallback(async (userMessage: string) => {
-    if (!userMessage.trim()) return
+    if (!userMessage.trim() || isRateLimited) return
 
     // Добавляем сообщение пользователя
     setMessages(prev => [...prev, {
@@ -88,10 +147,43 @@ export function useChat() {
           message: userMessage,
           context: context
         })
+      }).catch(error => {
+        // Перехватываем сетевые ошибки до того, как они попадут в консоль
+        return { ok: false, status: 500, json: async () => ({ error: error.message }) }
       })
 
-      const data = await response.json()
+      const data = await response.json().catch(() => ({ error: 'Failed to parse response' }))
 
+      // Проверяем все возможные случаи rate limit
+      if (
+        response.status === 429 ||
+        response.status === 500 || // Добавляем проверку 500 ошибок
+        data.error?.includes('Rate limit') ||
+        data.error?.includes('rate_limit_exceeded')
+      ) {
+        // Извлекаем время ожидания из сообщения об ошибке
+        const waitTimeMatch = data.error?.match(/try again in (\d+\.?\d*)s/)
+        const waitTime = waitTimeMatch ? Math.ceil(parseFloat(waitTimeMatch[1])) : 5
+
+        // Создаем структурированную ошибку rate limit
+        const rateLimitInfo: RateLimitError = {
+          error: {
+            message: data.error || `Rate limit exceeded. Please wait ${waitTime} seconds.`,
+            type: 'tokens' as const,
+            code: 'rate_limit_exceeded' as const
+          }
+        }
+
+        handleRateLimit(rateLimitInfo, userMessage)
+        return
+      }
+
+      // Остальные ошибки
+      if (!response.ok) {
+        throw new Error(data.error || 'Unknown error occurred')
+      }
+
+      // Успешный ответ
       if (data.status === 'success' && data.message) {
         // Проверяем и нормализуем метрики из ответа
         const metrics: Metrics = {
@@ -150,11 +242,31 @@ export function useChat() {
         throw new Error(data.error || 'Unknown error occurred')
       }
     } catch (error) {
-      console.error('Chat error:', error)
+      // Тихая обработка ошибок, связанных с rate limit
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase()
+        if (
+          errorMessage.includes('rate limit') ||
+          errorMessage.includes('429') ||
+          errorMessage.includes('500')
+        ) {
+          const rateLimitInfo: RateLimitError = {
+            error: {
+              message: error.message,
+              type: 'tokens' as const,
+              code: 'rate_limit_exceeded' as const
+            }
+          }
+          handleRateLimit(rateLimitInfo, userMessage)
+          return
+        }
+      }
+
+      // Для других ошибок показываем уведомление
       setNotification('Neural interface malfunction. Please try again.')
       setMessages(prev => prev.filter(msg => !msg.isTemporary))
     }
-  }, [messages, isFirstMessage])
+  }, [messages, isFirstMessage, isRateLimited, handleRateLimit])
 
   const clearNotification = useCallback(() => {
     setNotification('')
@@ -164,11 +276,28 @@ export function useChat() {
     setNotification(`SYSTEM ERROR: ${error}`)
   }, [])
 
+  // Сохраняем текущую функцию отправки в ref
+  useEffect(() => {
+    sendMessageRef.current = sendMessage
+  }, [sendMessage])
+
+  // Очистка при размонтировании
+  useEffect(() => {
+    return () => {
+      if (cooldownTimer.current) {
+        clearInterval(cooldownTimer.current)
+      }
+    }
+  }, [])
+
   return {
     messages,
     notification,
     sendMessage,
     clearNotification,
-    setSystemError
+    setSystemError,
+    isRateLimited,
+    cooldownTime,
+    pendingMessage
   }
 }
