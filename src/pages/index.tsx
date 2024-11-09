@@ -9,8 +9,8 @@ import { CyberNotification } from '../components/CyberNotification'
 import { useChat } from '../features/chat/hooks/useChat'
 import { ChatMessage } from '../features/chat/ui/ChatMessage'
 import { AnimatedBackground } from '../features/chat/ui/AnimatedBackground'
-import { SYSTEM_INSTRUCTION, PREPARED_RESPONSES } from '../features/chat/model/constants'
-import { AIMetrics } from '../features/chat/ui/AIMetrics'
+// @not_use import { SYSTEM_INSTRUCTION, PREPARED_RESPONSES } from '../features/chat/model/constants'
+// @not_use import { AIMetrics } from '../features/chat/ui/AIMetrics'
 
 const { publicRuntimeConfig } = getConfig()
 
@@ -74,7 +74,7 @@ export interface Metrics {
 
 export default function CyberpunkAIChat() {
   const [loading, setLoading] = useState(false)
-  const { messages, notification, sendMessage, clearNotification, setSystemError, handleEmptyResponse } = useChat()
+  const { messages, notification, sendMessage, clearNotification, setSystemError } = useChat()
   const [input, setInput] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -93,7 +93,7 @@ export default function CyberpunkAIChat() {
     setLoading(true)
 
     try {
-      await sendMessage(userMessage, '')
+      await sendMessage(userMessage)
     } catch (error) {
       console.error('Chat error:', error)
       setSystemError('Neural interface malfunction')
