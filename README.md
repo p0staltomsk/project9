@@ -83,6 +83,7 @@ REDIS_PASSWORD=your_redis_password
 ## 📚 Documentation
 
 ### Core Documentation
+- [Grog AI Models](./docs/GROG.md) - Available AI models
 - [API Documentation](./docs/API.md) - API architecture and endpoints
 - [Infrastructure Guide](./docs/INFRASTRUCTURE.md) - Deployment and infrastructure
 - [Neo API Integration](./docs/NEO_API_INTEGRATION.md) - Neo API details
@@ -90,7 +91,7 @@ REDIS_PASSWORD=your_redis_password
 - [Development Roadmap](./docs/ROADMAP.md) - Future plans and features
 
 ### Technical Guides
-- [Grog AI Models](./docs/GROG.md) - Available AI models
+- [Frontend](./src/FRONTEND.md) - Frontend details
 - [Service README](./src/service/README.md) - Backend service details
 - [Development Backlog](./src/BACKLOG.md) - Current progress
 
