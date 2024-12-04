@@ -6,16 +6,21 @@
   <img src="https://img.shields.io/badge/LIVE-DEMO-blue?style=for-the-badge&logo=vercel&labelColor=000000&color=3178C6" alt="Live Demo" style="height: 40px; margin: 20px 0;" />
 </a>
 
+<a href="https://t.me/Neon_Nexus_AI_bot" target="_blank">
+  <img src="https://img.shields.io/badge/Telegram-BOT-blue?style=for-the-badge&logo=telegram&labelColor=000000&color=26A5E4" alt="Telegram Bot" style="height: 40px; margin: 20px 0;" />
+</a>
+
 </div>
 
 Cyberpunk-themed AI chat interface with real-time AI detection metrics and analysis.
 
-## 🌟 Latest Updates (v0.2)
+## 🌟 Latest Updates (v0.35)
 - ✨ Real-time AI metrics visualization
 - 🔄 Improved error handling with cyberpunk-style messages
 - 🎨 Enhanced UI with metric details
 - 🚀 Stable API integration
 - 🧪 Full test coverage
+- 🤖 Telegram Bot Integration (@Neon_Nexus_AI_bot)
 
 ## 🤖 Features
 - Advanced AI detection metrics
@@ -34,6 +39,7 @@ Cyberpunk-themed AI chat interface with real-time AI detection metrics and analy
 - 💾 Redis caching
 - 🐳 Docker deployment
 - 🧪 Full test coverage
+- 📱 Telegram Bot Integration
 
 ### Technical Stack
 - Next.js 15.0 (Frontend)
@@ -42,6 +48,7 @@ Cyberpunk-themed AI chat interface with real-time AI detection metrics and analy
 - Redis
 - WebSocket
 - Docker
+- Telegram Bot API
 
 ## 🚀 Quick Start
 
@@ -78,6 +85,8 @@ pnpm start
 GROG_API_KEY=your_grog_api_key
 NEO_API_KEY=your_neo_api_key
 REDIS_PASSWORD=your_redis_password
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+WEBHOOK_URL=your_webhook_url
 ```
 
 ## 📚 Documentation
@@ -89,6 +98,7 @@ REDIS_PASSWORD=your_redis_password
 - [Neo API Integration](./docs/NEO_API_INTEGRATION.md) - Neo API details
 - [Metrics Analysis](./docs/METRICS_ANALYSIS.md) - Metrics and analysis
 - [Development Roadmap](./docs/ROADMAP.md) - Future plans and features
+- [Telegram Integration](./docs/TELEGRAM.md) - Telegram bot setup and usage
 
 ### Technical Guides
 - [Frontend](./src/FRONTEND.md) - Frontend details
@@ -100,6 +110,7 @@ REDIS_PASSWORD=your_redis_password
 ```mermaid
 graph TD
     Client[Client App] --> NextJS[Next.js App]
+    TelegramBot[Telegram Bot] --> SERVICE
     NextJS --> SERVICE[Python Service]
     SERVICE --> GrogAPI[Grog AI]
     SERVICE --> NeoAPI[Neo API]
@@ -142,6 +153,7 @@ MIT License - feel free to use this project for any purpose.
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-3120/)
 [![Version 0.1](https://img.shields.io/badge/version-0.1-green.svg)](https://github.com/your-repo/neon-nexus)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Telegram](https://img.shields.io/badge/Telegram-Bot-blue.svg)](https://t.me/Neon_Nexus_AI_bot)
 
 ## 🔮 Vision
 
