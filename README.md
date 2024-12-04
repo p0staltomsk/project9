@@ -151,7 +151,7 @@ MIT License - feel free to use this project for any purpose.
 
 [![Neo API SDK](https://img.shields.io/badge/Neo%20API-SDK-blue)](https://pypi.org/project/neoapi-sdk/)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-3120/)
-[![Version 0.1](https://img.shields.io/badge/version-0.1-green.svg)](https://github.com/your-repo/neon-nexus)
+[![Version 0.1](https://img.shields.io/badge/version-0.35-green.svg)](https://github.com/p0staltomsk/project9)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Telegram](https://img.shields.io/badge/Telegram-Bot-blue.svg)](https://t.me/Neon_Nexus_AI_bot)
 
