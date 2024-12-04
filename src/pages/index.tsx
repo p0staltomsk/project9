@@ -3,14 +3,14 @@ import { Send, Zap, Brain, Cpu, Terminal, Wifi } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { debounce } from 'lodash'
 import Link from 'next/link'
-import getConfig from 'next/config'
+// import getConfig from 'next/config'
 import Head from 'next/head'
 import { CyberNotification } from '../components/CyberNotification'
 import { useChat } from '../features/chat/hooks/useChat'
 import { ChatMessage } from '../features/chat/ui/ChatMessage'
 import { AnimatedBackground } from '../features/chat/ui/AnimatedBackground'
 
-const { publicRuntimeConfig } = getConfig()
+/* const { publicRuntimeConfig } = getConfig() */
 
 function useWindowSize() {
   const [windowSize, setWindowSize] = useState({
@@ -80,7 +80,7 @@ export default function CyberpunkAIChat() {
 
   const clientWindowSize = useClientOnly(windowSize)
 
-  const [isFirstMessage, setIsFirstMessage] = useState(true)
+  // const [isFirstMessage, setIsFirstMessage] = useState(true)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -135,7 +135,7 @@ export default function CyberpunkAIChat() {
   return (
     <>
       <Head>
-        <title>Neon Nexus AI</title>
+        <title className="select-none">Neon Nexus AI</title>
       </Head>
 
       <div className="flex flex-col h-screen bg-black text-green-300">
@@ -156,15 +156,15 @@ export default function CyberpunkAIChat() {
             >
               <Brain className="text-purple-400" />
             </motion.div>
-            <Link href="/cyber-personal-account">
+            {/* <Link href="/cyber-personal-account">
               <Cpu className="text-blue-400 animate-pulse" />
-            </Link>
+            </Link> */}
             <Link href="/console">
               <Terminal className="text-red-400" />
             </Link>
-            <Link href="https://web.89281112.xyz/" title='Назад'>
+            {/* <Link href="https://web.89281112.xyz/" title='Назад'>
               <Wifi className="text-green-400" />
-            </Link>
+            </Link> */}
           </div>
         </header>
 

@@ -140,7 +140,7 @@ export function useChat() {
     try {
       const context = prepareContext(userMessage)
 
-      const response = await fetch('https://web.89281112.xyz/project9/api/neo/chat', {
+      const response = await fetch('/project9/api/neo/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

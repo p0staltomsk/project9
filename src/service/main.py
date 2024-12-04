@@ -9,6 +9,7 @@ from typing import Dict, Set
 from dotenv import load_dotenv
 from .grog.main import GroqAPI
 from .neoapi.main import NeoAPI
+from .telegram.main import Neon_Nexus_AI_bot_webhook
 
 # Загружаем переменные окружения
 load_dotenv()
@@ -127,13 +128,26 @@ async def health_check(request: web.Request) -> web.Response:
 
 async def start_service(host: str = "", port: int = 8000, ws_port: int = 8001):
     try:
-        # Создаем приложение
         app = web.Application()
         handler = ServiceHandler()
         
-        # Routes
+        # Initialize Telegram webhook
+        telegram_webhook = Neon_Nexus_AI_bot_webhook(
+            token=os.getenv('TELEGRAM_BOT_TOKEN'),
+            webhook_url="https://web.89281112.xyz/project9/api/neo/getmemore",
+            service_url="https://web.89281112.xyz/project9"
+        )
+
+        # Проверяем и устанавливаем вебхук
+        telegram_webhook.check_and_setup_webhook()
+        
+        # Add routes
         app.router.add_get('/health', health_check)
         app.router.add_post('/chat', handler.handle_chat)
+        
+        # Add telegram routes
+        for route in telegram_webhook.get_routes():
+            app.router.add_route(route.method, route.path, route.handler)
         
         # Start HTTP server
         runner = web.AppRunner(app)

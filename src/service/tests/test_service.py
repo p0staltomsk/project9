@@ -1,7 +1,15 @@
 import pytest
 from aiohttp import web
 from typing import AsyncGenerator, Any
-from src.service.main import ServiceHandler, health_check
+import sys
+from pathlib import Path
+
+# Добавляем путь к корневой директории сервиса
+service_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(service_dir))
+
+# Теперь импортируем из пакета service
+from service.main import ServiceHandler, health_check
 
 @pytest.fixture
 async def app() -> web.Application:
