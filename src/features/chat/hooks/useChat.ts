@@ -273,7 +273,11 @@ export function useChat() {
   }, [])
 
   const setSystemError = useCallback((error: string) => {
-    setNotification(`SYSTEM ERROR: ${error}`)
+    console.error(error)
+    // Только для критических ошибок API
+    if (error.includes('API') || error.includes('Network')) {
+      setNotification(error)
+    }
   }, [])
 
   // Сохраняем текущую функцию отправки в ref

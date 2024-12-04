@@ -80,8 +80,6 @@ export default function CyberpunkAIChat() {
 
   const clientWindowSize = useClientOnly(windowSize)
 
-  // const [isFirstMessage, setIsFirstMessage] = useState(true)
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim() || loading) return
@@ -94,7 +92,6 @@ export default function CyberpunkAIChat() {
       await sendMessage(userMessage)
     } catch (error) {
       console.error('Chat error:', error)
-      setSystemError('Neural interface malfunction')
     } finally {
       setLoading(false)
     }
@@ -106,16 +103,6 @@ export default function CyberpunkAIChat() {
       inputRef.current.focus()
     }
   }, [messages])
-
-  useEffect(() => {
-    const handleError = (error: ErrorEvent) => {
-      console.error('Runtime error:', error)
-      setSystemError('SYSTEM ERROR: Neural interface malfunction detected')
-    }
-
-    window.addEventListener('error', handleError)
-    return () => window.removeEventListener('error', handleError)
-  }, [setSystemError])
 
   if (!messages || !sendMessage) {
     return (
