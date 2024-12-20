@@ -2,32 +2,18 @@ version: '3.8'
 
 services:
   neonchat-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: neonchat-service
-    container_name: neonchat-service
+    build: .
     ports:
       - "8000:8000"
-      - "8001:8001"
-    env_file: .env
+    env_file:
+      - .env
     environment:
-      - PYTHONUNBUFFERED=1
+      - GROQ_API_KEY=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
+      - NEO_API_KEY=api_r0g-KXFkFv2nYSlxN8kpbrB-JQXPGuh4Ji4nYqPU
+      - TELEGRAM_BOT_TOKEN=8062568450:AAG_S--VP92MeL6JW1ONtQ0XlkoffbMrsLw
     networks:
       - neonchat-network
-    restart: "no"
-    depends_on:
-      - redis
-
-  redis:
-    image: redis:alpine
-    container_name: neonchat-redis
-    ports:
-      - "6380:6379"
-    networks:
-      - neonchat-network
-    restart: "no"
 
 networks:
   neonchat-network:
-    driver: bridge
+    name: neonchat-network

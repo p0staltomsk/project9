@@ -23,5 +23,4 @@ COPY src/service ./src/service
 HEALTHCHECK --interval=5s --timeout=3s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Run service
 CMD ["python", "-m", "src.service.main"]
